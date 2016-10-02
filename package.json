@@ -8,14 +8,14 @@
     "prepublish": "rm -r build || (exit 0)"
   },
   "engines": {
-      "node": ">= 0.12.0"
+    "node": ">= 0.12.0"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/kAworu/node-quirc"
   },
   "bugs": {
-      "url": "https://github.com/kAworu/node-quirc/issues"
+    "url": "https://github.com/kAworu/node-quirc/issues"
   },
   "keywords": [
     "QR",
@@ -35,7 +35,8 @@
     "nan": "^2.3.5"
   },
   "devDependencies": {
-    "mocha": "2.5.3"
+    "chai": "^3.5.0",
+    "mocha": "^3.1.0"
   },
   "contributors": [
     "Alexandre Perrin <alexandre.perrin@netoxygen.ch> (https://github.com/kAworu)",
