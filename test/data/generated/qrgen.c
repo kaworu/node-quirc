@@ -21,7 +21,7 @@ generate(int version, QRencodeMode mode, QRecLevel level)
 	int num_datalen = strlen(num_data);
 	const char *an_data = "AC-42";
 	int an_datalen = strlen(an_data);
-	const char *bin_data = "GET LAMP";
+	const char *bin_data = "aA1234";
 	int bin_datalen = strlen(bin_data);
 	/* taken from https://github.com/fukuchi/libqrencode/blob/master/tests/test_estimatebit.c#L109 */
 	const unsigned char kanji_data[4] = {0x93, 0x5f,0xe4, 0xaa};

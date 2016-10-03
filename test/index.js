@@ -166,34 +166,12 @@ describe("decode()", function () {
             KANJI:   new Buffer([0x93, 0x5f,0xe4, 0xaa]),
         };
 
-        // generate tests for a version/ecc_level/mode combination
-        function generate_single_tests(fpath, version, ecc_level, mode) {
-            var image;
-            before(function () {
-                image = read_test_data(fpath);
-            });
-            it("should not yield an Error", function (done) {
-                quirc.decode(image, function (err, codes) {
-                    expect(err).to.not.exist;
-                    return done();
-                });
-            });
-            it("should yield one results", function (done) {
-                quirc.decode(image, function (err, codes) {
-                    expect(codes).to.be.an('array').and.to.have.length(1);
-                    return done();
-                });
-            });
-            it("should yield the QR Code", function (done) {
-                quirc.decode(image, function (err, codes) {
-                    expect(codes[0].version).to.eql(version);
-                    expect(codes[0].ecc_level).to.eql(ecc_level);
-                    expect(codes[0].mode).to.eql(mode);
-                    expect(codes[0].data).to.be.an.instanceof(Buffer);
-                    expect(codes[0].data.toString()).to.eql(mode_to_data(mode));
-                    return done();
-                });
-            });
+        function test_filename(version, ecc_level, mode) {
+            var fmt = "version=%s,level=%s,mode=%s.png";
+            // pad version with a leading 0 if needed to "simulate" printf's
+            // %02d format.
+            var version_str = ("0" + version).slice(-2);
+            return util.format(fmt, version_str, ecc_level, mode);
         }
 
         underscore.each(qr_versions, function (version) {
@@ -202,17 +180,55 @@ describe("decode()", function () {
                     context("ecc_level=" + ecc_level, function () {
                         underscore.each(qr_enc_modes, function (mode) {
                             context("mode=" + mode, function () {
-                                var fpath = util.format(
-                                    "generated/version=%d,level=%s,mode=%s.png",
-                                    version, ecc_level, mode
-                                 );
-                                fs.access(test_data_path(fpath), fs.R_OK, function (err) {
-                                    if (err) {
-                                        it.skip(fpath + " not generated");
-                                    } else {
-                                        generate_single_tests(fpath, version, ecc_level, mode);
-                                    }
-                                });
+                                var fname = test_filename(version, ecc_level, mode);
+                                // relative path for test_data_path() and
+                                // read_test_data()
+                                var rpath = "generated/" + fname;
+
+                                // use accessSync(), because async it() calls
+                                // won't register as expected.
+                                var found = false;
+                                try {
+                                    fs.accessSync(test_data_path(rpath), fs.R_OK);
+                                    found = true;
+                                } catch (e) {
+                                    found = false;
+                                }
+
+                                if (!found) {
+                                    it.skip(rpath + " not generated, skipped");
+                                } else {
+                                    var image;
+                                    before(function () {
+                                        image = read_test_data(rpath);
+                                    });
+                                    it("should not yield an Error", function (done) {
+                                        quirc.decode(image, function (err, codes) {
+                                            expect(err).to.not.exist;
+                                            return done();
+                                        });
+                                    });
+                                    it("should yield one results", function (done) {
+                                        quirc.decode(image, function (err, codes) {
+                                            expect(codes).to.be.an('array').and.to.have.length(1);
+                                            return done();
+                                        });
+                                    });
+                                    it("should yield the QR Code", function (done) {
+                                        quirc.decode(image, function (err, codes) {
+                                            expect(codes[0].version).to.eql(version);
+                                            expect(codes[0].ecc_level).to.eql(ecc_level);
+                                            expect(codes[0].mode).to.eql(mode);
+                                            expect(codes[0].data).to.be.an.instanceof(Buffer);
+                                            if (mode == "KANJI") {
+                                                expect(codes[0].data).to.eql(mode_to_data[mode]);
+                                            } else {
+                                                expect(codes[0].data.toString()).to.eql(mode_to_data[mode]);
+                                            }
+                                            return done();
+                                        });
+                                    });
+                                }
                             });
                         });
                     });
