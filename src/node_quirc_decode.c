@@ -2,10 +2,12 @@
  * node_quirc_decode.c - node-quirc decoding stuff
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <png.h>
+#define	PNG_BYTES_TO_CHECK	4
 
 #include "node_quirc_decode.h"
 #include "quirc/quirc.h"
@@ -15,15 +17,17 @@
 struct nq_code_list {
 	const char	*err; /* global error */
 	struct nq_code	*codes;
-	size_t		 size;
+	unsigned int	 size;
 };
 
 struct nq_code {
 	const char		*err;
+	struct quirc_code	 qcode;
 	struct quirc_data	 qdata;
 };
 
-static int	load_png(struct quirc *q, const uint8_t *img, size_t img_len)
+static int	nq_load_image(struct quirc *q, const uint8_t *img, size_t img_len);
+static int	nq_load_png(struct quirc *q, const uint8_t *img, size_t img_len);
 
 
 struct nq_code_list *
@@ -31,7 +35,6 @@ nq_decode(const uint8_t *img, size_t img_len)
 {
 	struct nq_code_list *list = NULL;
 	struct quirc *q = NULL;
-	char *buf = NULL;
 
 	list = calloc(1, sizeof(struct nq_code_list));
 	if (list == NULL)
@@ -49,7 +52,8 @@ nq_decode(const uint8_t *img, size_t img_len)
 		goto out;
 	}
 
-	if (load_png(q, img) == -1) {
+	if (nq_load_image(q, img, img_len) == -1) {
+		// FIXME: more descriptive error here?
 		list->err = "failed to load image";
 		goto out;
 	}
@@ -61,22 +65,24 @@ nq_decode(const uint8_t *img, size_t img_len)
 		list->err = "quirc_count()";
 		goto out;
 	}
-	list->codes = calloc((size_t)count, sizeof(struct nq_code));
+
+	list->size  = (unsigned int)count;
+	list->codes = calloc((size_t)list->size, sizeof(struct nq_code));
 	if (list->codes == NULL) {
-		list->err = "calloc(3)";
+		nq_code_list_free(list);
+		list = NULL;
 		goto out;
 	}
 
 	for (int i = 0; i < count; i++) {
-		struct quirc_code code;
-		struct quirc_data data;
+		struct nq_code *nqcode = list->codes + i;
 		quirc_decode_error_t err;
 
-		quirc_extract(q, i, &code);
-		err = quirc_decode(&code, &list->codes[i].data);
+		quirc_extract(q, i, &nqcode->qcode);
+		err = quirc_decode(&nqcode->qcode, &nqcode->qdata);
 
 		if (err)
-			list->codes[i].err = quirc_strerror(err);
+			nqcode->err = quirc_strerror(err);
 	}
 
 	/* FALLTHROUGH */
@@ -96,7 +102,7 @@ nq_code_list_err(const struct nq_code_list *list)
 }
 
 
-size_t
+unsigned int
 nq_code_list_size(const struct nq_code_list *list)
 {
 	return (list->size);
@@ -104,7 +110,7 @@ nq_code_list_size(const struct nq_code_list *list)
 
 
 const struct nq_code *
-nq_code_at(const struct nq_code_list *list, size_t index)
+nq_code_at(const struct nq_code_list *list, unsigned int index)
 {
 	const struct nq_code *target = NULL;
 
@@ -187,9 +193,26 @@ nq_code_payload_len(const struct nq_code *code)
 	return (code->qdata.payload_len);
 }
 
+
+/* returns 0 on success, -1 on error */
+static int
+nq_load_image(struct quirc *q, const uint8_t *img, size_t img_len)
+{
+	int ret = -1; /* error */
+
+	/* NOTE: only png is supported at the moment */
+	if (img_len >= PNG_BYTES_TO_CHECK) {
+		if (png_sig_cmp((uint8_t *)img, (png_size_t)0, PNG_BYTES_TO_CHECK) == 0)
+			ret = nq_load_png(q, img, img_len);
+	}
+
+	return (ret);
+}
+
+
 /* hacked from quirc/tests/dbgutil.c */
 static int
-load_png(struct quirc *q, const uint8_t *img, size_t img_len)
+nq_load_png(struct quirc *q, const uint8_t *img, size_t img_len)
 {
 	int width, height, rowbytes, interlace_type, number_passes = 1;
 	png_uint_32 trns;
@@ -197,22 +220,25 @@ load_png(struct quirc *q, const uint8_t *img, size_t img_len)
 	png_structp png_ptr = NULL;
 	png_infop info_ptr = NULL;
 	uint8_t *image;
+	FILE *infile = NULL;
 	int success = 0;
-	int pass;
+
+	infile = fmemopen((uint8_t *)img, img_len, "r");
+	if (infile == NULL)
+		goto out;
 
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	if (!png_ptr)
+	if (png_ptr == NULL)
 		goto out;
 
 	info_ptr = png_create_info_struct(png_ptr);
-	if (!info_ptr)
+	if (info_ptr == NULL)
 		goto out;
 
 	if (setjmp(png_jmpbuf(png_ptr)))
 		goto out;
 
-	// TODO png_set_read_fn() here
-	// see http://pulsarengine.com/2009/01/reading-png-images-from-memory/
+	png_init_io(png_ptr, infile);
 
 	png_read_info(png_ptr, info_ptr);
 
@@ -266,7 +292,7 @@ load_png(struct quirc *q, const uint8_t *img, size_t img_len)
 
 	image = quirc_begin(q, NULL, NULL);
 
-	for (pass = 0; pass < number_passes; pass++) {
+	for (int pass = 0; pass < number_passes; pass++) {
 		int y;
 
 		for (y = 0; y < height; y++) {
@@ -281,11 +307,13 @@ load_png(struct quirc *q, const uint8_t *img, size_t img_len)
 	/* FALLTHROUGH */
 out:
 	/* cleanup */
-	if (png_ptr) {
-		if (info_ptr)
+	if (png_ptr != NULL) {
+		if (info_ptr != NULL)
 			png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
 		else
 			png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
 	}
+	if (infile != NULL)
+		fclose(infile);
 	return (success ? 0 : -1);
 }
