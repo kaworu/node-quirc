@@ -167,7 +167,7 @@ nq_code_mask(const struct nq_code *code)
 
 
 const char *
-nq_code_data_type_str(const struct nq_code *code)
+nq_code_mode_str(const struct nq_code *code)
 {
 	switch (code->qdata.data_type) {
 	case QUIRC_DATA_TYPE_NUMERIC: return "NUMERIC";

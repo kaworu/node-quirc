@@ -21,13 +21,16 @@ using Nan::Set;
 using Nan::ThrowError;
 using Nan::ThrowTypeError;
 
-/* async worker wrapper around node_quirc_decode() */
+/* async worker wrapper around nq_decode() */
 class NodeQuircDecoder: public AsyncWorker
 {
 	private:
 
+	/* nq_decode() arguments */
 	const uint8_t *m_img;
 	size_t   m_img_len;
+
+	/* nq_decode() return value */
 	struct nq_code_list *m_code_list;
 
 	public:
@@ -101,8 +104,8 @@ class NodeQuircDecoder: public AsyncWorker
 			    New(nq_code_ecc_level_str(code)).ToLocalChecked());
 			Set(obj, New("mask").ToLocalChecked(),
 			    New(nq_code_mask(code)));
-			Set(obj, New("data_type").ToLocalChecked(),
-			    New(nq_code_data_type_str(code)).ToLocalChecked());
+			Set(obj, New("mode").ToLocalChecked(),
+			    New(nq_code_mode_str(code)).ToLocalChecked());
 			const char *data = (const char *)nq_code_payload(code);
 			Set(obj, New("data").ToLocalChecked(),
 			   Nan::CopyBuffer(data, nq_code_payload_len(code)).ToLocalChecked());
@@ -111,24 +114,52 @@ class NodeQuircDecoder: public AsyncWorker
 	}
 };
 
-// Asynchronous access to the `node_quirc_decode()` function
+
+// async access to nq_decode()
 NAN_METHOD(NodeQuircDecodeAsync) {
 	if (info.Length() < 2)
-		ThrowError("expected (img, callback) as arguments");
+		return ThrowError("expected (img, callback) as arguments");
 	if (!node::Buffer::HasInstance(info[0]))
-		ThrowTypeError("img must be a Buffer");
+		return ThrowTypeError("img must be a Buffer");
 	if (!info[1]->IsFunction())
-		ThrowTypeError("callback must be a Buffer");
+		return ThrowTypeError("callback must be a function");
 
-	char *img      = node::Buffer::Data(info[0]);
+	uint8_t *img   = (uint8_t *)node::Buffer::Data(info[0]);
 	size_t img_len = node::Buffer::Length(info[0]);
 	Callback *callback = new Callback(info[1].As<v8::Function>());
-	AsyncQueueWorker(new NodeQuircDecoder(callback, (uint8_t *)img, img_len));
+	AsyncQueueWorker(new NodeQuircDecoder(callback, img, img_len));
 }
 
+
+// export stuff to NodeJS
 NAN_MODULE_INIT(NodeQuircInit) {
+	v8::Local<v8::Object> constants = New<v8::Object>();
+
+	// QR-code versions.
+	Set(constants, New("VERSION_MIN").ToLocalChecked(), New( 1));
+	Set(constants, New("VERSION_MAX").ToLocalChecked(), New(40));
+
+	// QR-code ECC levels.
+	Set(constants, New("ECC_LEVEL_M").ToLocalChecked(), New("M").ToLocalChecked());
+	Set(constants, New("ECC_LEVEL_L").ToLocalChecked(), New("L").ToLocalChecked());
+	Set(constants, New("ECC_LEVEL_H").ToLocalChecked(), New("H").ToLocalChecked());
+	Set(constants, New("ECC_LEVEL_Q").ToLocalChecked(), New("Q").ToLocalChecked());
+
+	// QR-code encoding modes.
+	Set(constants, New("MODE_NUMERIC").ToLocalChecked(),
+	    New("NUMERIC").ToLocalChecked());
+	Set(constants, New("MODE_ALPHA").ToLocalChecked(),
+	    New("ALPHA").ToLocalChecked());
+	Set(constants, New("MODE_BYTE").ToLocalChecked(),
+	    New("BYTE").ToLocalChecked());
+	Set(constants, New("MODE_KANJI").ToLocalChecked(),
+	    New("KANJI").ToLocalChecked());
+
+	// exported stuff
+	Set(target, New("constants").ToLocalChecked(), constants);
 	Set(target, New("decode").ToLocalChecked(),
 	    GetFunction(New<v8::FunctionTemplate>(NodeQuircDecodeAsync)).ToLocalChecked());
 }
+
 
 NODE_MODULE(node_quirc, NodeQuircInit)

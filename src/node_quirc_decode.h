@@ -20,7 +20,7 @@ const char	*nq_code_err(const struct nq_code *code);
 int		 nq_code_version(const struct nq_code *code);
 const char	*nq_code_ecc_level_str(const struct nq_code *code);
 int		 nq_code_mask(const struct nq_code *code);
-const char	*nq_code_data_type_str(const struct nq_code *code);
+const char	*nq_code_mode_str(const struct nq_code *code);
 const uint8_t	*nq_code_payload(const struct nq_code *code);
 size_t		 nq_code_payload_len(const struct nq_code *code);
 
