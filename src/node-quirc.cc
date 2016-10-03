@@ -148,8 +148,8 @@ NAN_MODULE_INIT(NodeQuircInit) {
 	// QR-code encoding modes.
 	Set(constants, New("MODE_NUMERIC").ToLocalChecked(),
 	    New("NUMERIC").ToLocalChecked());
-	Set(constants, New("MODE_ALPHA").ToLocalChecked(),
-	    New("ALPHA").ToLocalChecked());
+	Set(constants, New("MODE_ALNUM").ToLocalChecked(),
+	    New("ALNUM").ToLocalChecked());
 	Set(constants, New("MODE_BYTE").ToLocalChecked(),
 	    New("BYTE").ToLocalChecked());
 	Set(constants, New("MODE_KANJI").ToLocalChecked(),

@@ -171,7 +171,7 @@ nq_code_mode_str(const struct nq_code *code)
 {
 	switch (code->qdata.data_type) {
 	case QUIRC_DATA_TYPE_NUMERIC: return "NUMERIC";
-	case QUIRC_DATA_TYPE_ALPHA:   return "ALPHA";
+	case QUIRC_DATA_TYPE_ALPHA:   return "ALNUM";
 	case QUIRC_DATA_TYPE_BYTE:    return "BYTE";
 	case QUIRC_DATA_TYPE_KANJI:   return "KANJI";
 	}

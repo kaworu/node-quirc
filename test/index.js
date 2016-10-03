@@ -20,7 +20,7 @@ var qr_ecc_levels = {
 // QR-code encoding modes.
 var qr_enc_modes = {
     MODE_NUMERIC: "NUMERIC",
-    MODE_ALPHA:   "ALPHA",
+    MODE_ALNUM:   "ALNUM",
     MODE_BYTE:    "BYTE",
     MODE_KANJI:   "KANJI",
 };
@@ -161,9 +161,9 @@ describe("decode()", function () {
     context("when the image file has one QR Code", function () {
         var mode_to_data = {
             NUMERIC: "42",
-            ALPHA:   "AC-42",
-            BYTE:    "GET LAMP",
-            KANJI:   new Buffer([0x93, 0x5f,0xe4, 0xaa]).toString(),
+            ALNUM:   "AC-42",
+            BYTE:    "aA1234",
+            KANJI:   new Buffer([0x93, 0x5f,0xe4, 0xaa]),
         };
 
         // generate tests for a version/ecc_level/mode combination

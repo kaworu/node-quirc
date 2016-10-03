@@ -38,9 +38,9 @@ generate(int version, QRencodeMode mode, QRecLevel level)
 	FILE *fh;
 	int x, y, d;
 	const char *mode_str[] = {
-		[QR_MODE_NUM]   = "NUM",
-		[QR_MODE_AN]    = "AN",
-		[QR_MODE_8]     = "BIN",
+		[QR_MODE_NUM]   = "NUMERIC",
+		[QR_MODE_AN]    = "ALNUM",
+		[QR_MODE_8]     = "BYTE",
 		[QR_MODE_KANJI] = "KANJI",
 	};
 
