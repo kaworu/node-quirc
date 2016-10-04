@@ -40,12 +40,6 @@ nq_decode(const uint8_t *img, size_t img_len)
 	if (list == NULL)
 		goto out;
 
-	/* arguments sanity check */
-	if (img == NULL) {
-		list->err = "img cannot be NULL";
-		goto out;
-	}
-
 	q = quirc_new();
 	if (q == NULL) {
 		list->err = "quirc_new()";
