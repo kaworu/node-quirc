@@ -14,6 +14,21 @@
 #include <png.h>
 
 
+static const char *mode_str[] = {
+	[QR_MODE_NUM]   = "NUMERIC",
+	[QR_MODE_AN]    = "ALNUM",
+	[QR_MODE_8]     = "BYTE",
+	[QR_MODE_KANJI] = "KANJI",
+};
+
+static const char *ecc_level_str[] = {
+	[QR_ECLEVEL_L]   = "L",
+	[QR_ECLEVEL_M]   = "M",
+	[QR_ECLEVEL_Q]   = "Q",
+	[QR_ECLEVEL_H]   = "H",
+};
+
+
 void
 generate(int version, QRencodeMode mode, QRecLevel level)
 {
@@ -37,12 +52,6 @@ generate(int version, QRencodeMode mode, QRecLevel level)
 	char *fn;
 	FILE *fh;
 	int x, y, d;
-	const char *mode_str[] = {
-		[QR_MODE_NUM]   = "NUMERIC",
-		[QR_MODE_AN]    = "ALNUM",
-		[QR_MODE_8]     = "BYTE",
-		[QR_MODE_KANJI] = "KANJI",
-	};
 
 	switch (mode) {
 	case QR_MODE_NUM:
@@ -74,8 +83,8 @@ generate(int version, QRencodeMode mode, QRecLevel level)
 	code = QRcode_encodeInput(input);
 	QRinput_free(input);
 
-	int ret = asprintf(&fn, "version=%02d,level=%c,mode=%s.png",
-		    version, "LMQH"[level], mode_str[mode]);
+	int ret = asprintf(&fn, "version=%02d,level=%s,mode=%s.png",
+		    version, ecc_level_str[level], mode_str[mode]);
 	if (ret == -1)
 		err(1, "asprintf");
 	if ((fh = fopen(fn, "wb")) == NULL)
@@ -123,12 +132,15 @@ generate(int version, QRencodeMode mode, QRecLevel level)
 	QRcode_free(code);
 }
 
+
 int
 main(int argc, char **argv)
 {
 	for (int version = 1; version <= 40; version++) {
 		for (QRencodeMode mode = QR_MODE_NUM; mode <= QR_MODE_KANJI; mode++) {
 			for (QRecLevel level = QR_ECLEVEL_L; level <= QR_ECLEVEL_H; level++) {
+				(void)printf("version=%02d,level=%s,mode=%s\n",
+				    version, ecc_level_str[level], mode_str[mode]);
 				generate(version, mode, level);
 			}
 		}
