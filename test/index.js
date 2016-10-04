@@ -218,12 +218,12 @@ describe("decode()", function () {
         });
     });
 
-    context("when the image file has one QR Code", function () {
+    context("using generated file", function () {
         var mode_to_data = {
             NUMERIC: "42",
             ALNUM:   "AC-42",
             BYTE:    "aA1234",
-            KANJI:   new Buffer([0x93, 0x5f,0xe4, 0xaa]),
+            KANJI:   [0x93, 0x5f,0xe4, 0xaa],
         };
 
         function test_filename(version, ecc_level, mode) {
@@ -235,62 +235,52 @@ describe("decode()", function () {
         }
 
         underscore.each(qr_versions, function (version) {
-            context("version=" + version, function () {
-                underscore.each(qr_ecc_levels, function (ecc_level) {
-                    context("ecc_level=" + ecc_level, function () {
-                        underscore.each(qr_enc_modes, function (mode) {
-                            context("mode=" + mode, function () {
-                                var fname = test_filename(version, ecc_level, mode);
-                                // relative path for test_data_path() and
-                                // read_test_data()
-                                var rpath = "generated/" + fname;
-
-                                // use accessSync(), because async it() calls
-                                // won't register as expected.
-                                var found = false;
-                                try {
-                                    fs.accessSync(test_data_path(rpath), fs.R_OK);
-                                    found = true;
-                                } catch (e) {
-                                    found = false;
-                                }
-
-                                if (!found) {
-                                    it.skip(rpath + " not generated, skipped");
-                                } else {
-                                    var image;
-                                    before(function () {
-                                        image = read_test_data(rpath);
-                                    });
-                                    it("should not yield an Error", function (done) {
-                                        quirc.decode(image, function (err, codes) {
-                                            expect(err).to.not.exist;
-                                            return done();
-                                        });
-                                    });
-                                    it("should yield one results", function (done) {
-                                        quirc.decode(image, function (err, codes) {
-                                            expect(codes).to.be.an('array').and.to.have.length(1);
-                                            return done();
-                                        });
-                                    });
-                                    it("should yield the QR Code", function (done) {
-                                        quirc.decode(image, function (err, codes) {
-                                            expect(codes[0].version).to.eql(version);
-                                            expect(codes[0].ecc_level).to.eql(ecc_level);
-                                            expect(codes[0].mode).to.eql(mode);
-                                            expect(codes[0].data).to.be.an.instanceof(Buffer);
-                                            if (mode == "KANJI") {
-                                                expect(codes[0].data).to.eql(mode_to_data[mode]);
-                                            } else {
-                                                expect(codes[0].data.toString()).to.eql(mode_to_data[mode]);
-                                            }
-                                            return done();
-                                        });
-                                    });
-                                }
+            underscore.each(qr_ecc_levels, function (ecc_level) {
+                underscore.each(qr_enc_modes, function (mode) {
+                    var fname = test_filename(version, ecc_level, mode);
+                    context(fname, function () {
+                        // relative path for test_data_path() and
+                        // read_test_data()
+                        var rpath = "generated/" + fname;
+                        // use accessSync(), because async it() calls
+                        // won't register as expected.
+                        var found = false;
+                        try {
+                            fs.accessSync(test_data_path(rpath), fs.R_OK);
+                            found = true;
+                        } catch (e) {
+                            found = false;
+                        }
+                        if (!found) {
+                            it.skip(rpath + " not found, skipped");
+                        } else {
+                            var image;
+                            before(function () {
+                                image = read_test_data(rpath);
                             });
-                        });
+                            it("should not yield an Error", function (done) {
+                                quirc.decode(image, function (err, codes) {
+                                    expect(err).to.not.exist;
+                                    return done();
+                                });
+                            });
+                            it("should yield one results", function (done) {
+                                quirc.decode(image, function (err, codes) {
+                                    expect(codes).to.be.an('array').and.to.have.length(1);
+                                    return done();
+                                });
+                            });
+                            it("should yield the QR Code", function (done) {
+                                quirc.decode(image, function (err, codes) {
+                                    expect(codes[0].version).to.eql(version);
+                                    expect(codes[0].ecc_level).to.eql(ecc_level);
+                                    expect(codes[0].mode).to.eql(mode);
+                                    expect(codes[0].data).to.be.an.instanceof(Buffer);
+                                    expect(codes[0].data).to.eql(new Buffer(mode_to_data[mode]));
+                                    return done();
+                                });
+                            });
+                        }
                     });
                 });
             });
