@@ -215,7 +215,7 @@ nq_load_png(struct quirc *q, const uint8_t *img, size_t img_len)
 	png_infop info_ptr = NULL;
 	uint8_t *image;
 	FILE *infile = NULL;
-	int success = 0;
+	volatile int success = 0;
 
 	infile = fmemopen((uint8_t *)img, img_len, "r");
 	if (infile == NULL)
