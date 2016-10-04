@@ -20,6 +20,9 @@
             "sources": [
                 "src/node_quirc_decode.c"
             ],
+            "cflags_cc+": [
+                "-std=c99"
+            ],
             "libraries": [
                 "-lpng"
             ],
