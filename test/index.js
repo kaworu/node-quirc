@@ -84,9 +84,19 @@ describe("decode()", function () {
         });
     });
 
-    context("when the buffer data is not an image", function () {
+    context("when the buffer data is empty", function () {
         it("should yield an Error", function (done) {
             quirc.decode(new Buffer(""), function (err, codes) {
+                expect(err).to.exist.and.to.be.an("error");
+                expect(err.message).to.eql("failed to load image");
+                return done();
+            });
+        });
+    });
+
+    context("when the buffer data is not an image", function () {
+        it("should yield an Error", function (done) {
+            quirc.decode(new Buffer("Hello World"), function (err, codes) {
                 expect(err).to.exist.and.to.be.an("error");
                 expect(err.message).to.eql("failed to load image");
                 return done();
