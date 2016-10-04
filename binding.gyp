@@ -22,6 +22,7 @@
             ],
             "cflags+":   [ "-std=c99" ],
             "cflags_c+": [ "-std=c99" ],
+            "defines":   [ "_XOPEN_SOURCE=700" ],
             "libraries": [
                 "-lpng"
             ],

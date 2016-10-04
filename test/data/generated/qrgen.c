@@ -2,10 +2,12 @@
  * qrgen.c - Generate *a lot* of QR code files.
  *
  * Compile with:
- *   cc -std=c99 qrgen.c -lpng -lqrencode -o qrgen
+ * cc -std=c99 qrgen.c $(pkg-config --cflags --libs libpng libqrencode) -o qrgen
  */
 
-#define	_GNU_SOURCE /* lol */
+/* glibc feature_test_macros madness */
+#define	_GNU_SOURCE /* for asprintf(3) */
+
 #include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
