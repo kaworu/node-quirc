@@ -10,7 +10,7 @@
 #define	PNG_BYTES_TO_CHECK	4
 
 #include "node_quirc_decode.h"
-#include "quirc/quirc.h"
+#include "quirc.h"
 
 
 /* a nq_code list */
