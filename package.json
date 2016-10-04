@@ -1,6 +1,6 @@
 {
   "name": "node-quirc",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "quirc for nodejs (QR decoder)",
   "main": "index.js",
   "scripts": {
