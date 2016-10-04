@@ -14,7 +14,6 @@ using Nan::Callback;
 using Nan::CopyBuffer;
 using Nan::Error;
 using Nan::GetFunction;
-using Nan::MaybeLocal;
 using Nan::New;
 using Nan::Null;
 using Nan::Set;
@@ -24,15 +23,6 @@ using Nan::ThrowTypeError;
 /* async worker wrapper around nq_decode() */
 class NodeQuircDecoder: public AsyncWorker
 {
-	private:
-
-	/* nq_decode() arguments */
-	const uint8_t *m_img;
-	size_t   m_img_len;
-
-	/* nq_decode() return value */
-	struct nq_code_list *m_code_list;
-
 	public:
 
 	/* ctor */
@@ -43,11 +33,13 @@ class NodeQuircDecoder: public AsyncWorker
 	    m_code_list(NULL)
 	{ }
 
+
 	/* dtor */
 	~NodeQuircDecoder()
 	{
 		nq_code_list_free(m_code_list);
 	}
+
 
 	// Executed inside the worker-thread.
 	// It is not safe to access V8, or V8 data structures here, so
@@ -57,9 +49,11 @@ class NodeQuircDecoder: public AsyncWorker
 		m_code_list = nq_decode(m_img, m_img_len);
 	}
 
+
 	// Executed when the async work is complete this function will be run
 	// inside the main event loop so it is safe to use V8 again
-	void HandleOKCallback () {
+	void HandleOKCallback()
+	{
 		/* ENOMEM check */
 		if (m_code_list == NULL)
 			return ThrowError("Could not allocate memory");
@@ -85,14 +79,32 @@ class NodeQuircDecoder: public AsyncWorker
 		callback->Call(2, argv);
 	}
 
-	void CallbackError(const char *msg) {
+
+	private:
+
+	/* members */
+
+	/* nq_decode() arguments */
+	const uint8_t	*m_img;
+	size_t		 m_img_len;
+	/* nq_decode() return value */
+	struct nq_code_list	*m_code_list;
+
+	/* helpers */
+
+	// call `callback` with an Error containing msg.
+	void CallbackError(const char *msg)
+	{
 		v8::Local<v8::Value> argv[] = {
 			Error(msg),
 		};
 		callback->Call(1, argv);
 	}
 
-	v8::Local<v8::Object> CodeToObject(const struct nq_code *code) {
+
+	// convert a struct nq_code() to a v8::Object
+	v8::Local<v8::Object> CodeToObject(const struct nq_code *code)
+	{
 		v8::Local<v8::Object> obj = New<v8::Object>();
 		if (nq_code_err(code) != NULL) {
 			Set(obj, New("err").ToLocalChecked(),
@@ -108,7 +120,7 @@ class NodeQuircDecoder: public AsyncWorker
 			    New(nq_code_mode_str(code)).ToLocalChecked());
 			const char *data = (const char *)nq_code_payload(code);
 			Set(obj, New("data").ToLocalChecked(),
-			   Nan::CopyBuffer(data, nq_code_payload_len(code)).ToLocalChecked());
+			   CopyBuffer(data, nq_code_payload_len(code)).ToLocalChecked());
 		}
 		return (obj);
 	}
