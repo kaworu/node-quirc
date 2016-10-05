@@ -41,7 +41,7 @@ generate(int version, QRencodeMode mode, QRecLevel level)
 	const char *bin_data = "aA1234";
 	int bin_datalen = strlen(bin_data);
 	/* taken from https://github.com/fukuchi/libqrencode/blob/master/tests/test_estimatebit.c#L109 */
-	const unsigned char kanji_data[4] = {0x93, 0x5f,0xe4, 0xaa};
+	const unsigned char kanji_data[4] = {0x93, 0x5f,0xe4, 0xaa}; /* 点茗 in Shift-JIS */
 	int kanji_datalen = sizeof(kanji_data);
 	const unsigned char *data;
 	int datalen;

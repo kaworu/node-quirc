@@ -223,7 +223,7 @@ describe("decode()", function () {
             NUMERIC: "42",
             ALNUM:   "AC-42",
             BYTE:    "aA1234",
-            KANJI:   [0x93, 0x5f,0xe4, 0xaa],
+            KANJI:   [0x93, 0x5f, 0xe4, 0xaa], // 点茗 in Shift-JIS
         };
 
         function test_filename(version, ecc_level, mode) {
