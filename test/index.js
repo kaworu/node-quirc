@@ -254,24 +254,11 @@ describe("decode()", function () {
                         if (!found) {
                             it.skip(rpath + " not found, skipped");
                         } else {
-                            var image;
-                            before(function () {
-                                image = read_test_data(rpath);
-                            });
-                            it("should not yield an Error", function (done) {
+                            it("should yield the QR Code", function (done) {
+                                var image = read_test_data(rpath);
                                 quirc.decode(image, function (err, codes) {
                                     expect(err).to.not.exist;
-                                    return done();
-                                });
-                            });
-                            it("should yield one results", function (done) {
-                                quirc.decode(image, function (err, codes) {
                                     expect(codes).to.be.an('array').and.to.have.length(1);
-                                    return done();
-                                });
-                            });
-                            it("should yield the QR Code", function (done) {
-                                quirc.decode(image, function (err, codes) {
                                     expect(codes[0].version).to.eql(version);
                                     expect(codes[0].ecc_level).to.eql(ecc_level);
                                     expect(codes[0].mode).to.eql(mode);
