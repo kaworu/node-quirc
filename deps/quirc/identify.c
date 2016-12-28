@@ -174,6 +174,7 @@ static void flood_fill_seed(struct quirc *q, int x, int y, int from, int to,
  * Adaptive thresholding
  */
 
+#define THRESHOLD_S_MIN		1
 #define THRESHOLD_S_DEN		8
 #define THRESHOLD_T		5
 
@@ -184,6 +185,15 @@ static void threshold(struct quirc *q)
 	int avg_u = 0;
 	int threshold_s = q->w / THRESHOLD_S_DEN;
 	quirc_pixel_t *row = q->pixels;
+
+	/*
+	 * Ensure a sane, non-zero value for threshold_s.
+	 *
+	 * threshold_s can be zero if the image width is small. We need to avoid
+	 * SIGFPE as it will be used as divisor.
+	 */
+	if (threshold_s < THRESHOLD_S_MIN)
+		threshold_s = THRESHOLD_S_MIN;
 
 	for (y = 0; y < q->h; y++) {
 		int row_average[q->w];
@@ -201,19 +211,17 @@ static void threshold(struct quirc *q)
 				u = x;
 			}
 
-			if (threshold_s > 0) {
-				avg_w = (avg_w * (threshold_s - 1)) /
-					threshold_s + row[w];
-				avg_u = (avg_u * (threshold_s - 1)) /
-					threshold_s + row[u];
-			}
+			avg_w = (avg_w * (threshold_s - 1)) /
+				threshold_s + row[w];
+			avg_u = (avg_u * (threshold_s - 1)) /
+				threshold_s + row[u];
 
 			row_average[w] += avg_w;
 			row_average[u] += avg_u;
 		}
 
 		for (x = 0; x < q->w; x++) {
-			if (threshold_s > 0 && row[x] < row_average[x] *
+			if (row[x] < row_average[x] *
 			    (100 - THRESHOLD_T) / (200 * threshold_s))
 				row[x] = QUIRC_PIXEL_BLACK;
 			else
