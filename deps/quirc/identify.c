@@ -427,7 +427,7 @@ static void finder_scan(struct quirc *q, int y)
 {
 	quirc_pixel_t *row = q->pixels + y * q->w;
 	int x;
-	int last_color;
+	int last_color = 0;
 	int run_length = 0;
 	int run_count = 0;
 	int pb[5];
@@ -773,7 +773,7 @@ static int fitness_all(const struct quirc *q, int index)
 
 	/* Check alignment patterns */
 	ap_count = 0;
-	while (info->apat[ap_count])
+	while ((ap_count < QUIRC_MAX_ALIGNMENT) && info->apat[ap_count])
 		ap_count++;
 
 	for (i = 1; i + 1 < ap_count; i++) {
