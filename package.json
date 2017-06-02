@@ -1,6 +1,6 @@
 {
   "name": "node-quirc",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "quirc for nodejs (QR decoder)",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "prepublish": "rm -r build || (exit 0)"
   },
   "engines": {
-    "node": ">= 0.12.0"
+    "node": ">= 4"
   },
   "repository": {
     "type": "git",
@@ -32,11 +32,11 @@
   "gypfile": true,
   "dependencies": {
     "bindings": "^1.2.1",
-    "nan": "^2.3.5"
+    "nan": "^2.6.2"
   },
   "devDependencies": {
-    "chai": "^4.0.0",
-    "mocha": "^3.1.0",
+    "chai": "^4.0.1",
+    "mocha": "^3.4.2",
     "underscore": "^1.8.3"
   },
   "contributors": [
