@@ -15,8 +15,8 @@ and a `constants` object.
 
 
 ## decode(img, callback)
-`img` must be a `Buffer` of a PNG Encoded image file. Currently only PNG is
-supported, but JPEG support is planned (see #2).
+`img` must be a `Buffer` of a PNG encoded image file. Currently only PNG is
+supported, but JPEG support is planned (see [#2](./issues/2)).
 
 `callback` is a "classic" Node.js callback function, taking an error as first
 argument and the result as second argument. Because the provided image file may
