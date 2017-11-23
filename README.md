@@ -5,6 +5,7 @@
 A Node.js Addon of the quirc library (QR decoder library - https://github.com/dlbeer/quirc).
 
 # installation
+First, You need libpng (and its header files) installed. Then, simply
 ```
 % npm install node-quirc
 ```
