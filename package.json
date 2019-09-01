@@ -1,6 +1,6 @@
 {
   "name": "node-quirc",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "quirc for nodejs (QR decoder)",
   "main": "index.js",
   "scripts": {
@@ -31,13 +31,13 @@
   "license": "MIT",
   "gypfile": true,
   "dependencies": {
-    "bindings": "^1.3.0",
-    "nan": "^2.8.0"
+    "bindings": "^1.5.0",
+    "nan": "^2.14.0"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
-    "mocha": "^4.0.1",
-    "underscore": "^1.8.3"
+    "chai": "^4.2.0",
+    "mocha": "^6.2.0",
+    "underscore": "^1.9.1"
   },
   "contributors": [
     "Alexandre Perrin <alex@kaworu.ch> (https://github.com/kAworu)",

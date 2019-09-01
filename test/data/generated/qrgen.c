@@ -11,6 +11,7 @@
 #include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <qrencode.h>
 #include <png.h>
@@ -93,7 +94,7 @@ generate(int version, QRencodeMode mode, QRecLevel level)
 		err(1, "fopen");
 
 	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	if (png_ptr == png_structp_NULL)
+	if (png_ptr == NULL)
 		err(1, "png_create_write_struct");
 	info_ptr = png_create_info_struct(png_ptr);
 	if (info_ptr == NULL)
