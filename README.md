@@ -15,36 +15,55 @@ node-quirc aim to be simple to use, the module exposes a `decode()` function
 and a `constants` object.
 
 
-## decode(img, callback)
+## decode(img[, callback])
 `img` must be a `Buffer` of a PNG encoded image file. Currently only PNG is
 supported, but JPEG support is planned (see [#2][i2]).
 
-`callback` is a "classic" Node.js callback function, taking an error as first
-argument and the result as second argument. Because the provided image file may
-contains several QR Code, the result is always an array on success.
+When `callback` is provided, it is expected to be a "classic" Node.js callback
+function, taking an error as first argument and the result as second argument.
+Because the provided image file may contains several QR Code, the result is
+always an array on success.
+
+When `decode` is called only with `img` as argument, a `Promise` is returned.
+
 ```javascript
 const fs    = require("fs");
 const quirc = require("node-quirc");
 
-quirc.decode(fs.readFileSync("Hello+World.png"), (err, codes) => {
+// callback version
+const img = fs.readFileSync("Hello+World.png");
+quirc.decode(img, (err, codes) => {
     if (err) {
-        console.error(`decode failed: ${err.message}`);
+        // handle err.
     } else {
-        console.dir(codes);
+        // do something with codes.
     }
 });
 
+// Promise version
+quirc.decode(img).then((codes) => {
+        console.dir(codes);
+}).catch((err) => {
+        console.error(`decode failed: ${err.message}`);
+});
+
 /* output:
-[ { version: 1,
+[
+  {
+    version: 1,
     ecc_level: 'L',
     mask: 0,
     mode: 'BYTE',
-    data: Buffer [ 72, 101, 108, 108, 111 ] },
-  { version: 1,
+    data: Buffer [Uint8Array] [ 72, 101, 108, 108, 111 ]
+  },
+  {
+    version: 1,
     ecc_level: 'L',
     mask: 7,
     mode: 'BYTE',
-    data: Buffer [ 87, 111, 114, 108, 100 ] } ]
+    data: Buffer [Uint8Array] [ 87, 111, 114, 108, 100 ]
+  }
+]
 */
 ```
 

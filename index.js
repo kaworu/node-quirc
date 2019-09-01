@@ -5,7 +5,23 @@ const addon = require('bindings')('node-quirc.node');
 
 // public API
 module.exports = {
-    decode: addon.decode,
+    decode(img, callback) {
+        if (!Buffer.isBuffer(img)) {
+            throw new TypeError('img must be a Buffer');
+        }
+        if (callback) {
+            return addon.decode(img, callback);
+        } else {
+            return new Promise((resolve, reject) => {
+                addon.decode(img, (err, results) => {
+                    if (err)
+                        return reject(err);
+                    else
+                        return resolve(results);
+                });
+            });
+        }
+    },
     constants: {
         // QR-code versions.
         VERSION_MIN:  1,

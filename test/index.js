@@ -65,12 +65,12 @@ describe("decode()", function () {
         it("should throw an Error when no arguments are given", function () {
             expect(function () {
                 quirc.decode();
-            }).to.throw(Error, "expected (img, callback) as arguments");
+            }).to.throw(Error, "img must be a Buffer");
         });
-        it("should throw an Error when only one argument is given", function () {
-            expect(function () {
-                quirc.decode(new Buffer(""));
-            }).to.throw(Error, "expected (img, callback) as arguments");
+        it("should return a Promise when only one argument is given", function () {
+            const p = quirc.decode(Buffer.from("data"));
+            expect(p).to.be.a("Promise");
+            p.catch((e) => { /* ignored */ });
         });
         it("should throw when img is not a Buffer", function () {
             expect(function () {
