@@ -30,8 +30,10 @@ When `decode` is called only with `img` as argument, a `Promise` is returned.
 const fs    = require("fs");
 const quirc = require("node-quirc");
 
-// callback version
+// load the PNG image file content
 const img = fs.readFileSync("Hello+World.png");
+
+// callback version
 quirc.decode(img, (err, codes) => {
     if (err) {
         // handle err.
@@ -68,7 +70,7 @@ quirc.decode(img).then((codes) => {
 ```
 
 ## constants
-see https://github.com/kAworu/node-quirc/blob/master/index.js#L9
+see https://github.com/kAworu/node-quirc/blob/master/index.js#L25
 
 
 # testing
