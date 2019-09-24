@@ -5,7 +5,7 @@
 A Node.js Addon of the quirc library (QR decoder library - https://github.com/dlbeer/quirc).
 
 # installation
-First, You need libpng (and its header files) installed. Then, simply
+First, You need libpng and libjpeg (and their header files) installed. Then, simply
 ```
 % npm install node-quirc
 ```
@@ -16,8 +16,7 @@ and a `constants` object.
 
 
 ## decode(img[, callback])
-`img` must be a `Buffer` of a PNG encoded image file. Currently only PNG is
-supported, but JPEG support is planned (see [#2][i2]).
+`img` must be a `Buffer` of a PNG or JPEG encoded image file.
 
 When `callback` is provided, it is expected to be a "classic" Node.js callback
 function, taking an error as first argument and the result as second argument.
@@ -37,15 +36,19 @@ const img = fs.readFileSync("Hello+World.png");
 quirc.decode(img, (err, codes) => {
     if (err) {
         // handle err.
+        console.error(`decode failed: ${err.message}`);
     } else {
         // do something with codes.
+        console.dir(codes);
     }
 });
 
 // Promise version
 quirc.decode(img).then((codes) => {
+        // do something with codes.
         console.dir(codes);
 }).catch((err) => {
+        // handle err.
         console.error(`decode failed: ${err.message}`);
 });
 
@@ -81,5 +84,3 @@ Clone the repo and then simply
 
 # license
 MIT, see [LICENSE](./LICENSE).
-
-[i2]: https://github.com/kAworu/node-quirc/issues/2
