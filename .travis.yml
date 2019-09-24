@@ -10,6 +10,7 @@ addons:
             - g++-4.8
             - libqrencode-dev
             - libpng12-dev
+            - jpeglib
 
 env:
     - CXX=g++-4.8
