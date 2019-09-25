@@ -28,7 +28,8 @@
             ],
             "direct_dependent_settings": {
                 "libraries": [
-                    "-lpng"
+                    "-lpng",
+                    "-ljpeg"
                 ]
             }
         }

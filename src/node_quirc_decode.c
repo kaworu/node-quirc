@@ -9,6 +9,8 @@
 #include <png.h>
 #define	PNG_BYTES_TO_CHECK	4
 
+#include <jpeglib.h>
+
 #include "node_quirc_decode.h"
 #include "quirc.h"
 
@@ -28,6 +30,7 @@ struct nq_code {
 
 static int	nq_load_image(struct quirc *q, const uint8_t *img, size_t img_len);
 static int	nq_load_png(struct quirc *q, const uint8_t *img, size_t img_len);
+static int  nq_load_jpeg(struct quirc *q, const uint8_t *img, size_t img_len);
 
 
 struct nq_code_list *
@@ -198,6 +201,8 @@ nq_load_image(struct quirc *q, const uint8_t *img, size_t img_len)
 	if (img_len >= PNG_BYTES_TO_CHECK) {
 		if (png_sig_cmp((uint8_t *)img, (png_size_t)0, PNG_BYTES_TO_CHECK) == 0)
 			ret = nq_load_png(q, img, img_len);
+		else
+			ret = nq_load_jpeg(q, img, img_len);
 	}
 
 	return (ret);
@@ -310,4 +315,73 @@ out:
 	if (infile != NULL)
 		fclose(infile);
 	return (success ? 0 : -1);
+}
+
+/* hacked from quirc/tests/dbgutil.c */
+struct nq_jpeg_error
+{
+	struct jpeg_error_mgr base;
+	jmp_buf env;
+};
+
+static void nq_error_exit(struct jpeg_common_struct *com)
+{
+	struct nq_jpeg_error *err = (struct nq_jpeg_error *)com->err;
+
+	longjmp(err->env, 0);
+}
+
+static struct jpeg_error_mgr *nq_error_mgr(struct nq_jpeg_error *err)
+{
+	jpeg_std_error(&err->base);
+
+	err->base.error_exit = nq_error_exit;
+
+	return &err->base;
+}
+
+static int
+nq_load_jpeg(struct quirc *q, const uint8_t *img, size_t img_len)
+{
+	struct jpeg_decompress_struct dinfo;
+	struct nq_jpeg_error err;
+	uint8_t *image;
+	int y;
+
+	memset(&dinfo, 0, sizeof(dinfo));
+	dinfo.err = nq_error_mgr(&err);
+
+	if (setjmp(err.env))
+		goto fail;
+
+	jpeg_create_decompress(&dinfo);
+	jpeg_mem_src(&dinfo, img, img_len);
+
+	jpeg_read_header(&dinfo, TRUE);
+	dinfo.output_components = 1;
+	dinfo.out_color_space = JCS_GRAYSCALE;
+	jpeg_start_decompress(&dinfo);
+
+	if (dinfo.output_components != 1)
+		goto fail;
+
+	if (quirc_resize(q, dinfo.output_width, dinfo.output_height) < 0)
+		goto fail;
+
+	image = quirc_begin(q, NULL, NULL);
+
+	for (y = 0; y < dinfo.output_height; y++)
+	{
+		JSAMPROW row_pointer = image + y * dinfo.output_width;
+
+		jpeg_read_scanlines(&dinfo, &row_pointer, 1);
+	}
+
+	jpeg_finish_decompress(&dinfo);
+	jpeg_destroy_decompress(&dinfo);
+	return 0;
+
+fail:
+	jpeg_destroy_decompress(&dinfo);
+	return -1;
 }
