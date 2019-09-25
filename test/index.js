@@ -1,36 +1,39 @@
-var fs   = require("fs");
-var path = require("path");
-var util = require("util");
+'use strict';
 
-var chai       = require("chai");
-var underscore = require("underscore");
-var expect     = chai.expect;
+const fs   = require("fs");
+const path = require("path");
+const util = require("util");
 
-var quirc = require("../index.js");
+const chai       = require("chai");
+const underscore = require("underscore");
+const expect     = chai.expect;
+
+const quirc = require("../index.js");
 
 // QR-code versions.
-var qr_versions = underscore.range(1, 40);
+const qr_versions = underscore.range(1, 40);
 // QR-code ECC levels.
-var qr_ecc_levels = {
+const qr_ecc_levels = {
     ECC_LEVEL_M: "M",
     ECC_LEVEL_L: "L",
     ECC_LEVEL_H: "H",
     ECC_LEVEL_Q: "Q",
 };
 // QR-code encoding modes.
-var qr_enc_modes = {
+const qr_enc_modes = {
     MODE_NUMERIC: "NUMERIC",
     MODE_ALNUM:   "ALNUM",
     MODE_BYTE:    "BYTE",
     MODE_KANJI:   "KANJI",
 };
 
-var types = [".png", ".jpeg"];
+const extensions = ["png", "jpeg"];
 
 /* helpers for test data files */
 function test_data_path(local_path) {
     return path.join(__dirname, "data", local_path);
 }
+
 function read_test_data(local_path) {
     return fs.readFileSync(test_data_path(local_path));
 }
@@ -106,117 +109,119 @@ describe("decode()", function () {
         });
     });
 
-    types.forEach(function (type) {
-        context("when the image file has no QR Code", function () {
-            var empty_image;
-            before(function () {
-                empty_image = read_test_data("1x1" + type);
+    extensions.forEach(function (ext) {
+        context(`${ext}`, function () {
+            context("when the image file has no QR Code", function () {
+                var empty_image;
+                before(function () {
+                    empty_image = read_test_data(`1x1.${ext}`);
+                });
+
+                it("should not yield an Error", function (done) {
+                    quirc.decode(empty_image, function (err, codes) {
+                        expect(err).to.not.exist;
+                        return done();
+                    });
+                });
+                it("should not yield a result", function (done) {
+                    quirc.decode(empty_image, function (err, codes) {
+                        expect(codes).to.be.an('array').and.to.have.length(0);
+                        return done();
+                    });
+                });
             });
 
-            it("should not yield an Error", function (done) {
-                quirc.decode(empty_image, function (err, codes) {
-                    expect(err).to.not.exist;
-                    return done();
+            context("when the image file has multiple QR Code", function () {
+                var hello_plus_world;
+                before(function () {
+                    hello_plus_world = read_test_data(`Hello+World.${ext}`);
                 });
-            });
-            it("should not yield a result", function (done) {
-                quirc.decode(empty_image, function (err, codes) {
-                    expect(codes).to.be.an('array').and.to.have.length(0);
-                    return done();
-                });
-            });
-        });
 
-        context("when the image file has multiple QR Code", function () {
-            var hello_plus_world;
-            before(function () {
-                hello_plus_world = read_test_data("Hello+World" + type);
-            });
-
-            it("should not yield an Error", function (done) {
-                quirc.decode(hello_plus_world, function (err, codes) {
-                    expect(err).to.not.exist;
-                    return done();
+                it("should not yield an Error", function (done) {
+                    quirc.decode(hello_plus_world, function (err, codes) {
+                        expect(err).to.not.exist;
+                        return done();
+                    });
                 });
-            });
-            it("should yield two results", function (done) {
-                quirc.decode(hello_plus_world, function (err, codes) {
-                    expect(codes).to.be.an('array').and.to.have.length(2);
-                    return done();
+                it("should yield two results", function (done) {
+                    quirc.decode(hello_plus_world, function (err, codes) {
+                        expect(codes).to.be.an('array').and.to.have.length(2);
+                        return done();
+                    });
                 });
-            });
-            it("should yield the first QR Code", function (done) {
-                quirc.decode(hello_plus_world, function (err, codes) {
-                    expect(codes[0].err).to.not.exist;
-                    expect(codes[0].version).to.eql(1);
-                    expect(codes[0].ecc_level).to.eql("L");
-                    expect(codes[0].mask).to.eql(0);
-                    expect(codes[0].mode).to.eql("BYTE");
-                    expect(codes[0].data).to.be.an.instanceof(Buffer);
-                    expect(codes[0].data.toString()).to.eql("Hello");
-                    return done();
+                it("should yield the first QR Code", function (done) {
+                    quirc.decode(hello_plus_world, function (err, codes) {
+                        expect(codes[0].err).to.not.exist;
+                        expect(codes[0].version).to.eql(1);
+                        expect(codes[0].ecc_level).to.eql("L");
+                        expect(codes[0].mask).to.eql(0);
+                        expect(codes[0].mode).to.eql("BYTE");
+                        expect(codes[0].data).to.be.an.instanceof(Buffer);
+                        expect(codes[0].data.toString()).to.eql("Hello");
+                        return done();
+                    });
                 });
-            });
-            it("should yield the second QR Code", function (done) {
-                quirc.decode(hello_plus_world, function (err, codes) {
-                    expect(codes[1].err).to.not.exist;
-                    expect(codes[1].version).to.eql(1);
-                    expect(codes[1].ecc_level).to.eql("L");
-                    expect(codes[1].mask).to.eql(7);
-                    expect(codes[1].mode).to.eql("BYTE");
-                    expect(codes[1].data).to.be.an.instanceof(Buffer);
-                    expect(codes[1].data.toString()).to.eql("World");
-                    return done();
+                it("should yield the second QR Code", function (done) {
+                    quirc.decode(hello_plus_world, function (err, codes) {
+                        expect(codes[1].err).to.not.exist;
+                        expect(codes[1].version).to.eql(1);
+                        expect(codes[1].ecc_level).to.eql("L");
+                        expect(codes[1].mask).to.eql(7);
+                        expect(codes[1].mode).to.eql("BYTE");
+                        expect(codes[1].data).to.be.an.instanceof(Buffer);
+                        expect(codes[1].data.toString()).to.eql("World");
+                        return done();
+                    });
                 });
-            });
-        });
-
-        /*
-        * This context() ensure that quirc was compiled with QUIRC_MAX_REGIONS > 256.
-        *
-        * see https://github.com/dlbeer/quirc/issues/2 for the test image file and
-        * https://github.com/dlbeer/quirc/pull/9 for the rational.
-        */
-        context("when the image file is big", function () {
-            var big_image_with_two_qrcodes;
-            before(function () {
-                big_image_with_two_qrcodes = read_test_data("big_image_with_two_qrcodes" + type);
             });
 
-            it("should not yield an Error", function (done) {
-                quirc.decode(big_image_with_two_qrcodes, function (err, codes) {
-                    expect(err).to.not.exist;
-                    return done();
+            /*
+            * This context() ensure that quirc was compiled with QUIRC_MAX_REGIONS > 256.
+            *
+            * see https://github.com/dlbeer/quirc/issues/2 for the test image file and
+            * https://github.com/dlbeer/quirc/pull/9 for the rational.
+            */
+            context("when the image file is big", function () {
+                var big_image_with_two_qrcodes;
+                before(function () {
+                    big_image_with_two_qrcodes = read_test_data(`big_image_with_two_qrcodes.${ext}`);
                 });
-            });
-            it("should yield two results", function (done) {
-                quirc.decode(big_image_with_two_qrcodes, function (err, codes) {
-                    expect(codes).to.be.an('array').and.to.have.length(2);
-                    return done();
+
+                it("should not yield an Error", function (done) {
+                    quirc.decode(big_image_with_two_qrcodes, function (err, codes) {
+                        expect(err).to.not.exist;
+                        return done();
+                    });
                 });
-            });
-            it("should yield the first QR Code", function (done) {
-                quirc.decode(big_image_with_two_qrcodes, function (err, codes) {
-                    expect(codes[0].err).to.not.exist;
-                    expect(codes[0].version).to.eql(4);
-                    expect(codes[0].ecc_level).to.eql("M");
-                    expect(codes[0].mask).to.eql(2);
-                    expect(codes[0].mode).to.eql("BYTE");
-                    expect(codes[0].data).to.be.an.instanceof(Buffer);
-                    expect(codes[0].data.toString()).to.eql("from javascript");
-                    return done();
+                it("should yield two results", function (done) {
+                    quirc.decode(big_image_with_two_qrcodes, function (err, codes) {
+                        expect(codes).to.be.an('array').and.to.have.length(2);
+                        return done();
+                    });
                 });
-            });
-            it("should yield the second QR Code", function (done) {
-                quirc.decode(big_image_with_two_qrcodes, function (err, codes) {
-                    expect(codes[1].err).to.not.exist;
-                    expect(codes[1].version).to.eql(4);
-                    expect(codes[1].ecc_level).to.eql("M");
-                    expect(codes[1].mask).to.eql(2);
-                    expect(codes[1].mode).to.eql("BYTE");
-                    expect(codes[1].data).to.be.an.instanceof(Buffer);
-                    expect(codes[1].data.toString()).to.eql("here comes qr!");
-                    return done();
+                it("should yield the first QR Code", function (done) {
+                    quirc.decode(big_image_with_two_qrcodes, function (err, codes) {
+                        expect(codes[0].err).to.not.exist;
+                        expect(codes[0].version).to.eql(4);
+                        expect(codes[0].ecc_level).to.eql("M");
+                        expect(codes[0].mask).to.eql(2);
+                        expect(codes[0].mode).to.eql("BYTE");
+                        expect(codes[0].data).to.be.an.instanceof(Buffer);
+                        expect(codes[0].data.toString()).to.eql("from javascript");
+                        return done();
+                    });
+                });
+                it("should yield the second QR Code", function (done) {
+                    quirc.decode(big_image_with_two_qrcodes, function (err, codes) {
+                        expect(codes[1].err).to.not.exist;
+                        expect(codes[1].version).to.eql(4);
+                        expect(codes[1].ecc_level).to.eql("M");
+                        expect(codes[1].mask).to.eql(2);
+                        expect(codes[1].mode).to.eql("BYTE");
+                        expect(codes[1].data).to.be.an.instanceof(Buffer);
+                        expect(codes[1].data.toString()).to.eql("here comes qr!");
+                        return done();
+                    });
                 });
             });
         });

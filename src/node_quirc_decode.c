@@ -8,7 +8,6 @@
 
 #include <png.h>
 #define	PNG_BYTES_TO_CHECK	4
-
 #include <jpeglib.h>
 
 #include "node_quirc_decode.h"
@@ -30,7 +29,7 @@ struct nq_code {
 
 static int	nq_load_image(struct quirc *q, const uint8_t *img, size_t img_len);
 static int	nq_load_png(struct quirc *q, const uint8_t *img, size_t img_len);
-static int  nq_load_jpeg(struct quirc *q, const uint8_t *img, size_t img_len);
+static int	nq_load_jpeg(struct quirc *q, const uint8_t *img, size_t img_len);
 
 
 struct nq_code_list *
@@ -317,28 +316,31 @@ out:
 	return (success ? 0 : -1);
 }
 
+
 /* hacked from quirc/tests/dbgutil.c */
-struct nq_jpeg_error
-{
+struct nq_jpeg_error {
 	struct jpeg_error_mgr base;
 	jmp_buf env;
 };
 
-static void nq_error_exit(struct jpeg_common_struct *com)
+
+static void
+nq_error_exit(struct jpeg_common_struct *com)
 {
 	struct nq_jpeg_error *err = (struct nq_jpeg_error *)com->err;
 
 	longjmp(err->env, 0);
 }
 
-static struct jpeg_error_mgr *nq_error_mgr(struct nq_jpeg_error *err)
+
+static struct jpeg_error_mgr *
+nq_error_mgr(struct nq_jpeg_error *err)
 {
 	jpeg_std_error(&err->base);
-
 	err->base.error_exit = nq_error_exit;
-
 	return &err->base;
 }
+
 
 static int
 nq_load_jpeg(struct quirc *q, const uint8_t *img, size_t img_len)
@@ -346,7 +348,7 @@ nq_load_jpeg(struct quirc *q, const uint8_t *img, size_t img_len)
 	struct jpeg_decompress_struct dinfo;
 	struct nq_jpeg_error err;
 	uint8_t *image;
-	int y;
+	JDIMENSION y;
 
 	memset(&dinfo, 0, sizeof(dinfo));
 	dinfo.err = nq_error_mgr(&err);
