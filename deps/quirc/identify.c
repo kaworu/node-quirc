@@ -14,6 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <limits.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
@@ -852,7 +853,7 @@ static void rotate_capstone(struct quirc_capstone *cap,
 	struct quirc_point copy[4];
 	int j;
 	int best = 0;
-	int best_score = INT32_MAX;
+	int best_score = INT_MAX;
 
 	for (j = 0; j < 4; j++) {
 		struct quirc_point *p = &cap->corners[j];
@@ -1071,7 +1072,7 @@ static void test_grouping(struct quirc *q, int i)
 
 static void pixels_setup(struct quirc *q, uint8_t threshold)
 {
-	if (sizeof(*q->image) == sizeof(*q->pixels)) {
+	if (QUIRC_PIXEL_ALIAS_IMAGE) {
 		q->pixels = (quirc_pixel_t *)q->image;
 	}
 
