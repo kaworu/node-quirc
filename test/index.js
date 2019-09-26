@@ -27,6 +27,24 @@ const qr_enc_modes = {
     MODE_KANJI:   "KANJI",
 };
 
+const qr_eci = {
+    ECI_ISO_8859_1:  "ISO_8859_1",
+    ECI_IBM437:      "IBM437",
+    ECI_ISO_8859_2:  "ISO_8859_2",
+    ECI_ISO_8859_3:  "ISO_8859_3",
+    ECI_ISO_8859_4:  "ISO_8859_4",
+    ECI_ISO_8859_5:  "ISO_8859_5",
+    ECI_ISO_8859_6:  "ISO_8859_6",
+    ECI_ISO_8859_7:  "ISO_8859_7",
+    ECI_ISO_8859_8:  "ISO_8859_8",
+    ECI_ISO_8859_9:  "ISO_8859_9",
+    ECI_WINDOWS_874: "WINDOWS_874",
+    ECI_ISO_8859_13: "ISO_8859_13",
+    ECI_ISO_8859_15: "ISO_8859_15",
+    ECI_SHIFT_JIS:   "SHIFT_JIS",
+    ECI_UTF_8:       "UTF_8",
+};
+
 const extensions = ["png", "jpeg"];
 
 /* helpers for test data files */
@@ -58,6 +76,14 @@ describe("constants", function () {
 
     describe("QR-code encoding modes", function () {
         underscore.each(qr_enc_modes, function (value, key) {
+            it("should set " + key + " to " + value, function () {
+                expect(quirc.constants[key]).to.exist.and.to.eql(value);
+            });
+        });
+    });
+
+    describe("QR-code ECI", function () {
+        underscore.each(qr_eci, function (value, key) {
             it("should set " + key + " to " + value, function () {
                 expect(quirc.constants[key]).to.exist.and.to.eql(value);
             });
@@ -220,6 +246,39 @@ describe("decode()", function () {
                         expect(codes[1].mode).to.eql("BYTE");
                         expect(codes[1].data).to.be.an.instanceof(Buffer);
                         expect(codes[1].data.toString()).to.eql("here comes qr!");
+                        return done();
+                    });
+                });
+            });
+
+            context("when the QR code has an ECI segment", function () {
+                var image_with_eci;
+                before(function () {
+                    image_with_eci = read_test_data(`eci.${ext}`);
+                });
+
+                it("should not yield an Error", function (done) {
+                    quirc.decode(image_with_eci, function (err, codes) {
+                        expect(err).to.not.exist;
+                        return done();
+                    });
+                });
+                it("should yield one results", function (done) {
+                    quirc.decode(image_with_eci, function (err, codes) {
+                        expect(codes).to.be.an('array').and.to.have.length(1);
+                        return done();
+                    });
+                });
+                it("should yield the QR Code with the eci field set", function (done) {
+                    quirc.decode(image_with_eci, function (err, codes) {
+                        expect(codes[0].err).to.not.exist;
+                        expect(codes[0].version).to.eql(7);
+                        expect(codes[0].ecc_level).to.eql("L");
+                        expect(codes[0].mask).to.eql(1);
+                        expect(codes[0].mode).to.eql("BYTE");
+                        expect(codes[0].data).to.be.an.instanceof(Buffer);
+                        expect(codes[0].data.toString()).to.eql("ᚻᛖ ᚳᚹᚫᚦ ᚦᚫᛏ ᚻᛖ ᛒᚢᛞᛖ ᚩᚾ ᚦᚫᛗ ᛚᚪᚾᛞᛖ ᚾᚩᚱᚦᚹᛖᚪᚱᛞᚢᛗ ᚹᛁᚦ ᚦᚪ ᚹᛖᛥᚫ");
+                        expect(codes[0].eci).to.eql("UTF_8");
                         return done();
                     });
                 });

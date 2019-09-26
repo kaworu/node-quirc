@@ -176,6 +176,30 @@ nq_code_mode_str(const struct nq_code *code)
 }
 
 
+const char *
+nq_code_eci_str(const struct nq_code *code)
+{
+	switch (code->qdata.eci) {
+		case QUIRC_ECI_ISO_8859_1:  return "ISO_8859_1";
+		case QUIRC_ECI_IBM437:      return "IBM437";
+		case QUIRC_ECI_ISO_8859_2:  return "ISO_8859_2";
+		case QUIRC_ECI_ISO_8859_3:  return "ISO_8859_3";
+		case QUIRC_ECI_ISO_8859_4:  return "ISO_8859_4";
+		case QUIRC_ECI_ISO_8859_5:  return "ISO_8859_5";
+		case QUIRC_ECI_ISO_8859_6:  return "ISO_8859_6";
+		case QUIRC_ECI_ISO_8859_7:  return "ISO_8859_7";
+		case QUIRC_ECI_ISO_8859_8:  return "ISO_8859_8";
+		case QUIRC_ECI_ISO_8859_9:  return "ISO_8859_9";
+		case QUIRC_ECI_WINDOWS_874: return "WINDOWS_874";
+		case QUIRC_ECI_ISO_8859_13: return "ISO_8859_13";
+		case QUIRC_ECI_ISO_8859_15: return "ISO_8859_15";
+		case QUIRC_ECI_SHIFT_JIS:   return "SHIFT_JIS";
+		case QUIRC_ECI_UTF_8:       return "UTF_8";
+	}
+	return NULL;
+}
+
+
 const uint8_t *
 nq_code_payload(const struct nq_code *code)
 {

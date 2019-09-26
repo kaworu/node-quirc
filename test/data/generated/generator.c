@@ -1,8 +1,8 @@
 /*
- * qrgen.c - Generate *a lot* of QR code files.
+ * generator.c - Generate *a lot* of QR code files.
  *
  * Compile with:
- * cc -std=c99 qrgen.c $(pkg-config --cflags --libs libpng libqrencode) -o qrgen
+ * cc -std=c11 generator.c $(pkg-config --cflags --libs libpng libqrencode) -o generator
  */
 
 /* glibc feature_test_macros madness */

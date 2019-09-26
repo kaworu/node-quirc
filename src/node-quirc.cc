@@ -118,6 +118,11 @@ class NodeQuircDecoder: public AsyncWorker
 			    New(nq_code_mask(code)));
 			Set(obj, New("mode").ToLocalChecked(),
 			    New(nq_code_mode_str(code)).ToLocalChecked());
+			const char *eci = nq_code_eci_str(code);
+			if (eci) {
+				Set(obj, New("eci").ToLocalChecked(),
+				    New(eci).ToLocalChecked());
+			}
 			const char *data = (const char *)nq_code_payload(code);
 			Set(obj, New("data").ToLocalChecked(),
 			   CopyBuffer(data, nq_code_payload_len(code)).ToLocalChecked());
