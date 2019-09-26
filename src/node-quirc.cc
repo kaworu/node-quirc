@@ -102,7 +102,7 @@ class NodeQuircDecoder: public AsyncWorker
 	}
 
 
-	// convert a struct nq_code() to a v8::Object
+	// "convert" a struct nq_code to a v8::Object
 	v8::Local<v8::Object> CodeToObject(const struct nq_code *code)
 	{
 		v8::Local<v8::Object> obj = New<v8::Object>();

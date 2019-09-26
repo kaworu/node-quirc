@@ -40,16 +40,15 @@ quirc.decode(img, (err, codes) => {
     } else {
         // do something with codes.
         console.dir(codes);
+        console.log(codes.map((code) => code.data.toString('utf8')));
     }
 });
 
 // Promise version
 quirc.decode(img).then((codes) => {
-        // do something with codes.
-        console.dir(codes);
+    // do something with codes.
 }).catch((err) => {
-        // handle err.
-        console.error(`decode failed: ${err.message}`);
+    // handle err.
 });
 
 /* output:
@@ -69,6 +68,7 @@ quirc.decode(img).then((codes) => {
     data: Buffer [Uint8Array] [ 87, 111, 114, 108, 100 ]
   }
 ]
+[ 'Hello', 'World' ]
 */
 ```
 
