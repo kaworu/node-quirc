@@ -77,7 +77,7 @@ output:
 ```
 
 ## constants
-see https://github.com/kAworu/node-quirc/blob/master/index.js#L25
+see https://github.com/kAworu/node-quirc/blob/master/index.js#L26-L56
 
 
 # testing

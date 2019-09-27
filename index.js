@@ -14,10 +14,11 @@ module.exports = {
         } else {
             return new Promise((resolve, reject) => {
                 addon.decode(img, (err, results) => {
-                    if (err)
+                    if (err) {
                         return reject(err);
-                    else
+                    } else {
                         return resolve(results);
+                    }
                 });
             });
         }
