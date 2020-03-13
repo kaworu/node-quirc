@@ -137,7 +137,7 @@ describe("decode()", function () {
     extensions.forEach(function (ext) {
         context(`${ext}`, function () {
             context("when the image file has no QR Code", function () {
-                var empty_image;
+                let empty_image;
                 before(function () {
                     empty_image = read_test_data(`1x1.${ext}`);
                 });
@@ -157,7 +157,7 @@ describe("decode()", function () {
             });
 
             context("when the image file has multiple QR Code", function () {
-                var hello_plus_world;
+                let hello_plus_world;
                 before(function () {
                     hello_plus_world = read_test_data(`Hello+World.${ext}`);
                 });
@@ -209,7 +209,7 @@ describe("decode()", function () {
             * https://github.com/dlbeer/quirc/pull/9 for the rational.
             */
             context("when the image file is big", function () {
-                var big_image_with_two_qrcodes;
+                let big_image_with_two_qrcodes;
                 before(function () {
                     big_image_with_two_qrcodes = read_test_data(`big_image_with_two_qrcodes.${ext}`);
                 });
@@ -255,7 +255,7 @@ describe("decode()", function () {
     });
 
     context("using generated file", function () {
-        var mode_to_data = {
+        const mode_to_data = {
             NUMERIC: "42",
             ALNUM:   "AC-42",
             BYTE:    "aA1234",
@@ -263,10 +263,10 @@ describe("decode()", function () {
         };
 
         function test_filename(version, ecc_level, mode) {
-            var fmt = "version=%s,level=%s,mode=%s.png";
+            const fmt = "version=%s,level=%s,mode=%s.png";
             // pad version with a leading 0 if needed to "simulate" printf's
             // %02d format.
-            var version_str = ("0" + version).slice(-2);
+            const version_str = ("0" + version).slice(-2);
             return util.format(fmt, version_str, ecc_level, mode);
         }
 
@@ -277,11 +277,12 @@ describe("decode()", function () {
                     context(fname, function () {
                         // relative path for test_data_path() and
                         // read_test_data()
-                        var rpath = "generated/" + fname;
+                        const rpath = "generated/" + fname;
                         // use accessSync(), because async it() calls
                         // won't register as expected.
-                        var found = false;
+                        let found = false;
                         try {
+                            // XXX: TOCTOU but meh
                             fs.accessSync(test_data_path(rpath), fs.R_OK);
                             found = true;
                         } catch (e) {
