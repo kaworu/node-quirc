@@ -4,7 +4,7 @@
   "description": "quirc for nodejs (QR decoder)",
   "main": "index.js",
   "scripts": {
-    "test": "node-gyp configure build && ./node_modules/.bin/mocha",
+    "test": "node-gyp configure build && ./node_modules/.bin/mocha --reporter spec --ui bdd",
     "prepare": "rm -r build || (exit 0)"
   },
   "engines": {
