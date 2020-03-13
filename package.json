@@ -36,8 +36,7 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^6.2.0",
-    "underscore": "^1.9.1"
+    "mocha": "^7.1.0"
   },
   "contributors": [
     "Alexandre Perrin <alex@kaworu.ch> (https://github.com/kAworu)",

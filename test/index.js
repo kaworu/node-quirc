@@ -4,14 +4,13 @@ const fs   = require("fs");
 const path = require("path");
 const util = require("util");
 
-const chai       = require("chai");
-const underscore = require("underscore");
-const expect     = chai.expect;
+const chai   = require("chai");
+const expect = chai.expect;
 
 const quirc = require("../index.js");
 
 // QR-code versions.
-const qr_versions = underscore.range(1, 40);
+const qr_versions = Array(40).fill().map((_, i) => i + 1);
 // QR-code ECC levels.
 const qr_ecc_levels = {
     ECC_LEVEL_M: "M",
@@ -67,27 +66,27 @@ describe("constants", function () {
     });
 
     describe("QR-code ECC levels", function () {
-        underscore.each(qr_ecc_levels, function (value, key) {
-            it("should set " + key + " to " + value, function () {
+        for (const [key, value] of Object.entries(qr_ecc_levels)) {
+            it(`should set ${key} to ${value}`, function () {
                 expect(quirc.constants[key]).to.exist.and.to.eql(value);
             });
-        });
+        }
     });
 
     describe("QR-code encoding modes", function () {
-        underscore.each(qr_enc_modes, function (value, key) {
-            it("should set " + key + " to " + value, function () {
+        for (const [key, value] of Object.entries(qr_enc_modes)) {
+            it(`should set ${key} to ${value}`, function () {
                 expect(quirc.constants[key]).to.exist.and.to.eql(value);
             });
-        });
+        }
     });
 
     describe("QR-code ECI", function () {
-        underscore.each(qr_eci, function (value, key) {
-            it("should set " + key + " to " + value, function () {
+        for (const [key, value] of Object.entries(qr_eci)) {
+            it(`should set ${key} to ${value}`, function () {
                 expect(quirc.constants[key]).to.exist.and.to.eql(value);
             });
-        });
+        }
     });
 });
 
@@ -271,10 +270,10 @@ describe("decode()", function () {
             return util.format(fmt, version_str, ecc_level, mode);
         }
 
-        underscore.each(qr_versions, function (version) {
-            underscore.each(qr_ecc_levels, function (ecc_level) {
-                underscore.each(qr_enc_modes, function (mode) {
-                    var fname = test_filename(version, ecc_level, mode);
+        for (const version of qr_versions) {
+            for (const [_, ecc_level] of Object.entries(qr_ecc_levels)) {
+                for (const [_, mode] of Object.entries(qr_enc_modes)) {
+                    const fname = test_filename(version, ecc_level, mode);
                     context(fname, function () {
                         // relative path for test_data_path() and
                         // read_test_data()
@@ -306,8 +305,8 @@ describe("decode()", function () {
                             });
                         }
                     });
-                });
-            });
-        });
+                }
+            }
+        }
     });
 });
