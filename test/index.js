@@ -10,7 +10,7 @@ const expect = chai.expect;
 const quirc = require("../index.js");
 
 // QR-code versions.
-const qr_versions = Array(40).fill().map((_, i) => i + 1);
+const qr_versions = Array(40).fill(0).map((_, i) => i + 1);
 // QR-code ECC levels.
 const qr_ecc_levels = {
     ECC_LEVEL_M: "M",
@@ -109,14 +109,14 @@ describe("decode()", function () {
         });
         it("should throw when callback is not a function", function () {
             expect(function () {
-                quirc.decode(new Buffer.from(""), "not a function");
+                quirc.decode(Buffer.from(""), "not a function");
             }).to.throw(TypeError, "callback must be a function");
         });
     });
 
     context("when the buffer data is empty", function () {
         it("should yield an Error", function (done) {
-            quirc.decode(new Buffer.from(""), function (err, codes) {
+            quirc.decode(Buffer.from(""), function (err, codes) {
                 expect(err).to.exist.and.to.be.an("error");
                 expect(err.message).to.eql("failed to load image");
                 return done();
@@ -126,7 +126,7 @@ describe("decode()", function () {
 
     context("when the buffer data is not an image", function () {
         it("should yield an Error", function (done) {
-            quirc.decode(new Buffer.from("Hello World"), function (err, codes) {
+            quirc.decode(Buffer.from("Hello World"), function (err, codes) {
                 expect(err).to.exist.and.to.be.an("error");
                 expect(err.message).to.eql("failed to load image");
                 return done();
@@ -283,7 +283,7 @@ describe("decode()", function () {
                         let found = false;
                         try {
                             // XXX: TOCTOU but meh
-                            fs.accessSync(test_data_path(rpath), fs.R_OK);
+                            fs.accessSync(test_data_path(rpath), fs.constants.R_OK);
                             found = true;
                         } catch (e) {
                             found = false;
@@ -300,7 +300,7 @@ describe("decode()", function () {
                                     expect(codes[0].ecc_level).to.eql(ecc_level);
                                     expect(codes[0].mode).to.eql(mode);
                                     expect(codes[0].data).to.be.an.instanceof(Buffer);
-                                    expect(codes[0].data).to.eql(new Buffer.from(mode_to_data[mode]));
+                                    expect(codes[0].data).to.eql(Buffer.from(mode_to_data[mode]));
                                     return done();
                                 });
                             });
