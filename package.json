@@ -3,6 +3,7 @@
   "version": "2.2.1",
   "description": "quirc for nodejs (QR decoder)",
   "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "test": "node-gyp configure build && ./node_modules/.bin/mocha --reporter spec --ui bdd",
     "prepare": "rm -r build || (exit 0)"
