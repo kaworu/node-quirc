@@ -76,7 +76,7 @@ class NodeQuircDecoder: public AsyncWorker
 			Null(), /* err */
 			results,
 		};
-		callback->Call(2, argv);
+		Nan::Call(*callback, 2, argv);
 	}
 
 
@@ -98,7 +98,7 @@ class NodeQuircDecoder: public AsyncWorker
 		v8::Local<v8::Value> argv[] = {
 			Error(msg),
 		};
-		callback->Call(1, argv);
+		Nan::Call(*callback, 1, argv);
 	}
 
 
