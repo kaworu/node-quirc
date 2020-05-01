@@ -26,6 +26,9 @@ coverage
 # Compiled binary addons (http://nodejs.org/api/addons.html)
 build/
 
+# Generated TypeScript files.
+*.d.ts
+
 # Dependency directories
 node_modules
 jspm_packages

@@ -7,7 +7,7 @@
   "scripts": {
     "test": "node-gyp configure build && ./node_modules/.bin/mocha --reporter spec --ui bdd",
     "typecheck": "tsc",
-    "prepare": "rm -r build || (exit 0)"
+    "prepare": "rm -r build || (exit 0) && tsc"
   },
   "engines": {
     "node": ">= 8"
