@@ -3,8 +3,18 @@
 // Our C++ Addon
 const addon = require('bindings')('node-quirc.node');
 
+/**
+ * @typedef {import('./index').DecodeResult} DecodeResult
+ * @typedef {import('./index').DecodeCallback} DecodeCallback
+ */
+
 // public API
 module.exports = {
+    /**
+     * @param {Buffer} img
+     * @param {DecodeCallback=} callback 
+     * @returns {Promise<DecodeResult> | undefined}
+     */
     decode(img, callback) {
         if (!Buffer.isBuffer(img)) {
             throw new TypeError('img must be a Buffer');
@@ -13,13 +23,14 @@ module.exports = {
             return addon.decode(img, callback);
         } else {
             return new Promise((resolve, reject) => {
-                addon.decode(img, (err, results) => {
+                callback = (err, results) => {
                     if (err) {
                         return reject(err);
                     } else {
                         return resolve(results);
                     }
-                });
+                };
+                addon.decode(img, callback);
             });
         }
     },

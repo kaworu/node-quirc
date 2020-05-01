@@ -44,6 +44,7 @@ export interface QRCode {
     | typeof constants["MODE_BYTE"]
     | typeof constants["MODE_KANJI"];
   data: Buffer;
+  eci?: string;
 }
 
 export interface InvalidQRCode {
@@ -51,9 +52,10 @@ export interface InvalidQRCode {
 }
 
 export type DecodeResult = (QRCode | InvalidQRCode)[];
+export type DecodeCallback = (
+  err: Error | null,
+  results?: DecodeResult
+) => void;
 
 export function decode(img: Buffer): Promise<DecodeResult>;
-export function decode(
-  img: Buffer,
-  callback: (err: Error, results: DecodeResult) => void
-): void;
+export function decode(img: Buffer, callback: DecodeCallback): void;
