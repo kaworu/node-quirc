@@ -310,4 +310,27 @@ describe("decode()", function () {
             }
         }
     });
+
+    context("regressions", function () {
+        // https://github.com/dlbeer/quirc/pull/87
+        context("dark image", function () {
+            let img;
+            before(function () {
+                img = read_test_data("black.png")
+            });
+
+            it("should not yield an Error", function (done) {
+                quirc.decode(img, function (err, codes) {
+                    expect(err).to.not.exist;
+                    return done();
+                });
+            });
+            it("should not yield a result", function (done) {
+                quirc.decode(img, function (err, codes) {
+                    expect(codes).to.be.an('array').and.to.have.length(0);
+                    return done();
+                });
+            });
+        });
+    });
 });
