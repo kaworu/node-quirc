@@ -76,6 +76,10 @@ nq_decode(const uint8_t *img, size_t img_len)
 
 		quirc_extract(q, i, &nqcode->qcode);
 		err = quirc_decode(&nqcode->qcode, &nqcode->qdata);
+		if (err == QUIRC_ERROR_DATA_ECC) {
+			quirc_flip(&nqcode->qcode);
+			err = quirc_decode(&nqcode->qcode, &nqcode->qdata);
+		}
 
 		if (err)
 			nqcode->err = quirc_strerror(err);

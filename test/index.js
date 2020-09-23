@@ -202,6 +202,52 @@ describe("decode()", function () {
                 });
             });
 
+            context("when the QR code is flipped", function () {
+                let image_with_flipped_qr_code;
+                before(function () {
+                    image_with_flipped_qr_code = read_test_data(`flipped.${ext}`);
+                });
+
+                it("should not yield an Error", function (done) {
+                    quirc.decode(image_with_flipped_qr_code, function (err, codes) {
+                        expect(err).to.not.exist;
+                        return done();
+                    });
+                });
+                it("should yield two results", function (done) {
+                    quirc.decode(image_with_flipped_qr_code, function (err, codes) {
+                        expect(codes).to.be.an('array').and.to.have.length(2);
+                        return done();
+                    });
+                });
+                it("should yield the first QR Code", function (done) {
+                    quirc.decode(image_with_flipped_qr_code, function (err, codes) {
+                        expect(codes[0].err).to.not.exist;
+                        expect(codes[0].version).to.eql(3);
+                        expect(codes[0].ecc_level).to.eql("L");
+                        expect(codes[0].mask).to.eql(3);
+                        expect(codes[0].mode).to.eql("BYTE");
+                        expect(codes[0].eci).to.eql("UTF_8");
+                        expect(codes[0].data).to.be.an.instanceof(Buffer);
+                        expect(codes[0].data.toString()).to.eql("The quick brown fox jumps over the lazy dog");
+                        return done();
+                    });
+                });
+                it("should yield the second QR Code", function (done) {
+                    quirc.decode(image_with_flipped_qr_code, function (err, codes) {
+                        expect(codes[1].err).to.not.exist;
+                        expect(codes[1].version).to.eql(3);
+                        expect(codes[1].ecc_level).to.eql("L");
+                        expect(codes[1].mask).to.eql(3);
+                        expect(codes[1].mode).to.eql("BYTE");
+                        expect(codes[1].eci).to.eql("UTF_8");
+                        expect(codes[1].data).to.be.an.instanceof(Buffer);
+                        expect(codes[1].data.toString()).to.eql("The quick brown fox jumps over the lazy dog");
+                        return done();
+                    });
+                });
+            });
+
             /*
             * This context() ensure that quirc was compiled with QUIRC_MAX_REGIONS > 256.
             *
