@@ -50,6 +50,15 @@ quirc.decode(img).then((codes) => {
 }).catch((err) => {
     // handle err.
 });
+
+// alternatively, use an already-loaded ImageData, e.g. from a Canvas element
+const context = canvas.getContext('2d');
+const imageData = context.getImageData(0, 0, 800, 600);
+quirc.decode(imageData).then((codes) => {
+    // do something with codes.
+}).catch((err) => {
+    // handle err.
+});
 ```
 
 output:

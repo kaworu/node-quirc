@@ -3,6 +3,7 @@
 const fs   = require("fs");
 const path = require("path");
 const util = require("util");
+const jpeg = require("jpeg-js");
 
 const chai   = require("chai");
 const expect = chai.expect;
@@ -355,6 +356,32 @@ describe("decode()", function () {
                 }
             }
         }
+    });
+
+    context("raw image data", function () {
+        it("should read QR codes from raw image data", function (done) {
+            const big_image_with_two_qrcodes = jpeg.decode(
+                read_test_data("big_image_with_two_qrcodes.jpeg")
+            );
+            quirc.decode(big_image_with_two_qrcodes, function (err, codes) {
+                expect(codes).to.be.an("array").and.to.have.length(2);
+                expect(codes[0].err).to.not.exist;
+                expect(codes[0].version).to.eql(4);
+                expect(codes[0].ecc_level).to.eql("M");
+                expect(codes[0].mask).to.eql(2);
+                expect(codes[0].mode).to.eql("BYTE");
+                expect(codes[0].data).to.be.an.instanceof(Buffer);
+                expect(codes[0].data.toString()).to.eql("from javascript");
+                expect(codes[1].err).to.not.exist;
+                expect(codes[1].version).to.eql(4);
+                expect(codes[1].ecc_level).to.eql("M");
+                expect(codes[1].mask).to.eql(2);
+                expect(codes[1].mode).to.eql("BYTE");
+                expect(codes[1].data).to.be.an.instanceof(Buffer);
+                expect(codes[1].data.toString()).to.eql("here comes qr!");
+                done();
+            });
+        });
     });
 
     context("regressions", function () {

@@ -6,21 +6,43 @@ const addon = require('bindings')('node-quirc.node');
 // public API
 module.exports = {
     decode(img, callback) {
-        if (!Buffer.isBuffer(img)) {
-            throw new TypeError('img must be a Buffer');
-        }
-        if (callback) {
-            return addon.decode(img, callback);
-        } else {
-            return new Promise((resolve, reject) => {
-                addon.decode(img, (err, results) => {
-                    if (err) {
-                        return reject(err);
-                    } else {
-                        return resolve(results);
-                    }
+        if (Buffer.isBuffer(img)) {
+            if (callback) {
+                return addon.decodeEncoded(img, callback);
+            } else {
+                return new Promise((resolve, reject) => {
+                    addon.decodeEncoded(img, (err, results) => {
+                        if (err) {
+                            return reject(err);
+                        } else {
+                            return resolve(results);
+                        }
+                    });
                 });
-            });
+            }
+        } else if (img && typeof img === "object") {
+            const channels = img.data.length / img.width / img.height;
+            if (channels !== 1 && channels !== 3 && channels !== 4) {
+                throw new Error(
+                    `unsupported ${channels}-channel image, expected 1, 3, or 4`
+                );
+            }
+
+            if (callback) {
+                addon.decodeRaw(img.data, img.width, img.height, callback);
+            } else {
+                return new Promise((resolve, reject) => {
+                    addon.decodeRaw(img.data, img.width, img.height, (err, results) => {
+                        if (err) {
+                            return reject(err);
+                        } else {
+                            return resolve(results);
+                        }
+                    });
+                });
+            }
+        } else {
+            throw new TypeError("img must be a Buffer or ImageData");
         }
     },
     constants: {

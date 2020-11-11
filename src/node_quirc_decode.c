@@ -27,13 +27,14 @@ struct nq_code {
 	struct quirc_data	 qdata;
 };
 
-static int	nq_load_image(struct quirc *q, const uint8_t *img, size_t img_len);
+static int	nq_load_image(struct quirc *q, const uint8_t *img, size_t img_len, size_t width, size_t height);
 static int	nq_load_png(struct quirc *q, const uint8_t *img, size_t img_len);
 static int	nq_load_jpeg(struct quirc *q, const uint8_t *img, size_t img_len);
+static int	nq_load_raw(struct quirc *q, const uint8_t *img, size_t img_len, size_t width, size_t height);
 
 
 struct nq_code_list *
-nq_decode(const uint8_t *img, size_t img_len)
+nq_decode(const uint8_t *img, size_t img_len, size_t width, size_t height)
 {
 	struct nq_code_list *list = NULL;
 	struct quirc *q = NULL;
@@ -48,7 +49,7 @@ nq_decode(const uint8_t *img, size_t img_len)
 		goto out;
 	}
 
-	if (nq_load_image(q, img, img_len) == -1) {
+	if (nq_load_image(q, img, img_len, width, height) == -1) {
 		// FIXME: more descriptive error here?
 		list->err = "failed to load image";
 		goto out;
@@ -220,16 +221,21 @@ nq_code_payload_len(const struct nq_code *code)
 
 /* returns 0 on success, -1 on error */
 static int
-nq_load_image(struct quirc *q, const uint8_t *img, size_t img_len)
+nq_load_image(struct quirc *q, const uint8_t *img, size_t img_len, size_t width, size_t height)
 {
 	int ret = -1; /* error */
 
-	/* NOTE: only png is supported at the moment */
 	if (img_len >= PNG_BYTES_TO_CHECK) {
 		if (png_sig_cmp((uint8_t *)img, (png_size_t)0, PNG_BYTES_TO_CHECK) == 0)
 			ret = nq_load_png(q, img, img_len);
-		else
+	}
+
+	if (ret != 0) {
 			ret = nq_load_jpeg(q, img, img_len);
+	}
+
+	if (ret != 0 && width != 0 && height != 0) {
+		ret = nq_load_raw(q, img, img_len, width, height);
 	}
 
 	return (ret);
@@ -413,5 +419,51 @@ nq_load_jpeg(struct quirc *q, const uint8_t *img, size_t img_len)
 
 fail:
 	jpeg_destroy_decompress(&dinfo);
+	return -1;
+}
+
+static int
+nq_load_raw(struct quirc *q, const uint8_t *img, size_t img_len, size_t width, size_t height)
+{
+	if (quirc_resize(q, width, height) < 0)
+		goto fail;
+
+	uint8_t *image = quirc_begin(q, NULL, NULL);
+
+	int channels = img_len / width / height;
+
+	if (channels == 1)
+	{
+		memcpy(image, img, img_len);
+	}
+	else if (channels == 3 || channels == 4)
+	{
+		size_t dst_offset = width * height - 1;
+		size_t src_offset = dst_offset * channels;
+		do
+		{
+			uint8_t r = img[src_offset];
+			uint8_t g = img[src_offset + 1];
+			uint8_t b = img[src_offset + 2];
+			// ignore alpha, if present
+			image[dst_offset] = (uint8_t)(0.2126 * (float)r + 0.7152 * (float)g + 0.0722 * (float)b);
+
+			if (dst_offset == 0)
+			{
+				break;
+			}
+
+			src_offset -= channels;
+			dst_offset--;
+		} while (1);
+	}
+	else
+	{
+		goto fail;
+	}
+
+	return 0;
+
+fail:
 	return -1;
 }
