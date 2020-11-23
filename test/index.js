@@ -93,10 +93,13 @@ describe("constants", function () {
 
 describe("decode()", function () {
     describe("arguments", function () {
-        it("should throw an Error when no arguments are given", function () {
-            expect(function () {
-                quirc.decode();
-            }).to.throw(Error, "img must be a Buffer");
+        it("should return a rejected Promise when no arguments are given", function (done) {
+            const p = quirc.decode()
+            expect(p).to.be.a("Promise");
+            p.catch((e) => {
+                expect(e.message).to.eql("img must be a Buffer or ImageData");
+                done();
+            });
         });
         it("should return a Promise when only one argument is given", function () {
             const p = quirc.decode(Buffer.from("data"));
@@ -106,7 +109,7 @@ describe("decode()", function () {
         it("should throw when img is not a Buffer", function () {
             expect(function () {
                 quirc.decode("a string", function dummy() { });
-            }).to.throw(TypeError, "img must be a Buffer");
+            }).to.throw(TypeError, "img must be a Buffer or ImageData");
         });
         it("should throw when callback is not a function", function () {
             expect(function () {
