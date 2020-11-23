@@ -26,12 +26,12 @@ class NodeQuircDecoder: public AsyncWorker
 	public:
 
 	/* ctor */
-	NodeQuircDecoder(Callback *callback, const uint8_t *img, size_t img_len, size_t width, size_t height):
+	NodeQuircDecoder(Callback *callback, const uint8_t *img, size_t img_len, size_t img_width, size_t img_height):
 	    AsyncWorker(callback),
 	    m_img(img),
 	    m_img_len(img_len),
-	    m_width(width),
-	    m_height(height),
+	    m_img_width(img_width),
+	    m_img_height(img_height),
 	    m_code_list(NULL)
 	{ }
 
@@ -48,7 +48,7 @@ class NodeQuircDecoder: public AsyncWorker
 	// everything we need for input and output should go on `this`.
 	void Execute()
 	{
-		m_code_list = nq_decode(m_img, m_img_len, m_width, m_height);
+		m_code_list = nq_decode(m_img, m_img_len, m_img_width, m_img_height);
 	}
 
 
@@ -89,8 +89,8 @@ class NodeQuircDecoder: public AsyncWorker
 	/* nq_decode() arguments */
 	const uint8_t	*m_img;
 	size_t		 m_img_len;
-	size_t		 m_width;
-	size_t		 m_height;
+	size_t		 m_img_width;
+	size_t		 m_img_height;
 	/* nq_decode() return value */
 	struct nq_code_list	*m_code_list;
 
@@ -154,6 +154,7 @@ NAN_METHOD(NodeQuircDecodeEncodedAsync) {
 NAN_METHOD(NodeQuircDecodeRawAsync) {
 	if (info.Length() < 4)
 		return ThrowError("expected (pixels, width, height, callback) as arguments");
+	// Uint8ClampedArray is from ImageData#data, Buffer is allowed for convenience.
 	if (!info[0]->IsUint8ClampedArray() && !node::Buffer::HasInstance(info[0]))
 		return ThrowTypeError("pixels must be a Uint8ClampedArray or Buffer");
 	if (!info[1]->IsNumber())
@@ -175,10 +176,10 @@ NAN_METHOD(NodeQuircDecodeRawAsync) {
 		img_len = data.length();
 	}
 
-	size_t width = (size_t)Nan::To<int>(info[1]).FromJust();
-	size_t height = (size_t)Nan::To<int>(info[2]).FromJust();
+	size_t img_width = (size_t)Nan::To<int>(info[1]).FromJust();
+	size_t img_height = (size_t)Nan::To<int>(info[2]).FromJust();
 	Callback *callback = new Callback(info[3].As<v8::Function>());
-	AsyncQueueWorker(new NodeQuircDecoder(callback, img, img_len, width, height));
+	AsyncQueueWorker(new NodeQuircDecoder(callback, img, img_len, img_width, img_height));
 }
 
 // export stuff to NodeJS
