@@ -1,7 +1,7 @@
 language: node_js
 dist: bionic
 
-node_js: ["10", "12", "13"]
+node_js: ["10", "12", "14", "15"]
 
 addons:
     apt:
