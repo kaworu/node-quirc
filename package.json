@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "jpeg-js": "^0.4.0",
     "mocha": "^8.2.1"
   },
   "contributors": [

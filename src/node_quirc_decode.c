@@ -27,13 +27,14 @@ struct nq_code {
 	struct quirc_data	 qdata;
 };
 
-static int	nq_load_image(struct quirc *q, const uint8_t *img, size_t img_len);
+static int	nq_load_image(struct quirc *q, const uint8_t *img, size_t img_len, size_t img_width, size_t img_height);
 static int	nq_load_png(struct quirc *q, const uint8_t *img, size_t img_len);
 static int	nq_load_jpeg(struct quirc *q, const uint8_t *img, size_t img_len);
+static int	nq_load_raw(struct quirc *q, const uint8_t *img, size_t img_len, size_t img_width, size_t img_height);
 
 
 struct nq_code_list *
-nq_decode(const uint8_t *img, size_t img_len)
+nq_decode(const uint8_t *img, size_t img_len, size_t img_width, size_t img_height)
 {
 	struct nq_code_list *list = NULL;
 	struct quirc *q = NULL;
@@ -48,7 +49,7 @@ nq_decode(const uint8_t *img, size_t img_len)
 		goto out;
 	}
 
-	if (nq_load_image(q, img, img_len) == -1) {
+	if (nq_load_image(q, img, img_len, img_width, img_height) == -1) {
 		// FIXME: more descriptive error here?
 		list->err = "failed to load image";
 		goto out;
@@ -220,15 +221,20 @@ nq_code_payload_len(const struct nq_code *code)
 
 /* returns 0 on success, -1 on error */
 static int
-nq_load_image(struct quirc *q, const uint8_t *img, size_t img_len)
+nq_load_image(struct quirc *q, const uint8_t *img, size_t img_len, size_t img_width, size_t img_height)
 {
+	if (img_width > 0 && img_height > 0) {
+		return nq_load_raw(q, img, img_len, img_width, img_height);
+	}
+
 	int ret = -1; /* error */
 
-	/* NOTE: only png is supported at the moment */
 	if (img_len >= PNG_BYTES_TO_CHECK) {
 		if (png_sig_cmp((uint8_t *)img, (png_size_t)0, PNG_BYTES_TO_CHECK) == 0)
 			ret = nq_load_png(q, img, img_len);
-		else
+	}
+
+	if (ret != 0) {
 			ret = nq_load_jpeg(q, img, img_len);
 	}
 
@@ -413,5 +419,44 @@ nq_load_jpeg(struct quirc *q, const uint8_t *img, size_t img_len)
 
 fail:
 	jpeg_destroy_decompress(&dinfo);
+	return -1;
+}
+
+static int
+nq_load_raw(struct quirc *q, const uint8_t *img, size_t img_len, size_t img_width, size_t img_height)
+{
+	if (quirc_resize(q, img_width, img_height) < 0)
+		goto fail;
+
+	uint8_t *image = quirc_begin(q, NULL, NULL);
+
+	const size_t len = img_width * img_height;
+	const int channels = len == img_len ? 1 : /* grayscale */
+			3 * len == img_len ? 3 : /* rgb */
+			4 * len == img_len ? 4 : /* rgba */
+			/* default */ -1;
+
+	if (channels == 1) {
+		memcpy(image, img, img_len);
+	} else if (channels == 3 || channels == 4) {
+		for (
+			size_t dst_offset = 0, src_offset = 0;
+			dst_offset < img_width * img_height;
+			dst_offset++, src_offset += channels
+		) {
+			uint8_t r = img[src_offset];
+			uint8_t g = img[src_offset + 1];
+			uint8_t b = img[src_offset + 2];
+			// convert RGB to grayscale, ignoring alpha channel if present, using this:
+			// https://en.wikipedia.org/wiki/Grayscale#Colorimetric_(perceptual_luminance-preserving)_conversion_to_grayscale
+			image[dst_offset] = (uint8_t)(0.2126 * (float)r + 0.7152 * (float)g + 0.0722 * (float)b);
+		}
+	} else {
+		goto fail;
+	}
+
+	return 0;
+
+fail:
 	return -1;
 }

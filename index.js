@@ -3,17 +3,44 @@
 // Our C++ Addon
 const addon = require('bindings')('node-quirc.node');
 
-// public API
-module.exports = {
-    decode(img, callback) {
-        if (!Buffer.isBuffer(img)) {
-            throw new TypeError('img must be a Buffer');
-        }
-        if (callback) {
-            return addon.decode(img, callback);
-        } else {
+function decodeEncoded(img, callback) {
+    return addon.decodeEncoded(img, callback);
+}
+
+function isImageDimension(number) {
+    return (
+        typeof number === 'number' &&
+        number > 0 &&
+        (number | 0) === number &&
+        !isNaN(number)
+    );
+}
+
+function decodeRaw(img, callback) {
+    if (!isImageDimension(img.width)) {
+        throw new Error(
+            `unexpected width value for image: ${img.width}`
+        )
+    }
+    if (!isImageDimension(img.height)) {
+        throw new Error(
+            `unexpected height value for image: ${img.height}`
+        )
+    }
+    const channels = img.data.length / img.width / img.height;
+    if (channels !== 1 && channels !== 3 && channels !== 4) {
+        throw new Error(
+            `unsupported ${channels}-channel image, expected 1, 3, or 4`
+        );
+    }
+    return addon.decodeRaw(img.data, img.width, img.height, callback);
+}
+
+function maybePromisify(fn) {
+    return (...args) => {
+        if (args.length < fn.length) {
             return new Promise((resolve, reject) => {
-                addon.decode(img, (err, results) => {
+                fn(...args, (err, results) => {
                     if (err) {
                         return reject(err);
                     } else {
@@ -21,8 +48,23 @@ module.exports = {
                     }
                 });
             });
+        } else {
+            return fn(...args);
         }
-    },
+    };
+}
+
+// public API
+module.exports = {
+    decode: maybePromisify((img, callback) => {
+        if (Buffer.isBuffer(img)) {
+            return decodeEncoded(img, callback);
+        } else if (img && typeof img === "object") {
+            return decodeRaw(img, callback);
+        } else {
+            throw new TypeError("img must be a Buffer or ImageData");
+        }
+    }),
     constants: {
         // QR-code versions.
         VERSION_MIN:  1,

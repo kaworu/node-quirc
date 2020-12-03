@@ -16,7 +16,9 @@ and a `constants` object.
 
 
 ## decode(img[, callback])
-`img` must be a `Buffer` of a PNG or JPEG encoded image file.
+`img` must be either a `Buffer` of a PNG or JPEG encoded image file, or a
+decoded image in [`ImageData`](https://developer.mozilla.org/en-US/docs/Web/API/ImageData)
+format with 1 (grayscale), 3 (RGB) or 4 (RGBA) channels.
 
 When `callback` is provided, it is expected to be a "classic" Node.js callback
 function, taking an error as first argument and the result as second argument.
@@ -47,6 +49,20 @@ quirc.decode(img, (err, codes) => {
 // Promise version
 quirc.decode(img).then((codes) => {
     // do something with codes.
+}).catch((err) => {
+    // handle err.
+});
+
+// alternatively, use an already-loaded ImageData, e.g. from the `canvas` library
+const context = canvas.getContext('2d');
+const imageData = context.getImageData(0, 0, 800, 600);
+quirc.decode(imageData).then((codes) => {
+    // do something with codes.
+    console.log(`codes read from ImageData (size=${
+        imageData.data.length
+    }, width=${imageData.width}, height=${
+        imageData.height
+    }):`, codes);
 }).catch((err) => {
     // handle err.
 });

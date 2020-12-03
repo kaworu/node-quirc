@@ -26,10 +26,12 @@ class NodeQuircDecoder: public AsyncWorker
 	public:
 
 	/* ctor */
-	NodeQuircDecoder(Callback *callback, const uint8_t *img, size_t img_len):
+	NodeQuircDecoder(Callback *callback, const uint8_t *img, size_t img_len, size_t img_width, size_t img_height):
 	    AsyncWorker(callback),
 	    m_img(img),
 	    m_img_len(img_len),
+	    m_img_width(img_width),
+	    m_img_height(img_height),
 	    m_code_list(NULL)
 	{ }
 
@@ -46,7 +48,7 @@ class NodeQuircDecoder: public AsyncWorker
 	// everything we need for input and output should go on `this`.
 	void Execute()
 	{
-		m_code_list = nq_decode(m_img, m_img_len);
+		m_code_list = nq_decode(m_img, m_img_len, m_img_width, m_img_height);
 	}
 
 
@@ -87,6 +89,8 @@ class NodeQuircDecoder: public AsyncWorker
 	/* nq_decode() arguments */
 	const uint8_t	*m_img;
 	size_t		 m_img_len;
+	size_t		 m_img_width;
+	size_t		 m_img_height;
 	/* nq_decode() return value */
 	struct nq_code_list	*m_code_list;
 
@@ -133,7 +137,7 @@ class NodeQuircDecoder: public AsyncWorker
 
 
 // async access to nq_decode()
-NAN_METHOD(NodeQuircDecodeAsync) {
+NAN_METHOD(NodeQuircDecodeEncodedAsync) {
 	if (info.Length() < 2)
 		return ThrowError("expected (img, callback) as arguments");
 	if (!node::Buffer::HasInstance(info[0]))
@@ -144,14 +148,46 @@ NAN_METHOD(NodeQuircDecodeAsync) {
 	uint8_t *img   = (uint8_t *)node::Buffer::Data(info[0]);
 	size_t img_len = node::Buffer::Length(info[0]);
 	Callback *callback = new Callback(info[1].As<v8::Function>());
-	AsyncQueueWorker(new NodeQuircDecoder(callback, img, img_len));
+	AsyncQueueWorker(new NodeQuircDecoder(callback, img, img_len, 0, 0));
 }
 
+NAN_METHOD(NodeQuircDecodeRawAsync) {
+	if (info.Length() < 4)
+		return ThrowError("expected (pixels, width, height, callback) as arguments");
+	// Uint8ClampedArray is from ImageData#data, Buffer is allowed for convenience.
+	if (!info[0]->IsUint8ClampedArray() && !node::Buffer::HasInstance(info[0]))
+		return ThrowTypeError("pixels must be a Uint8ClampedArray or Buffer");
+	if (!info[1]->IsNumber())
+		return ThrowTypeError("width must be a number");
+	if (!info[2]->IsNumber())
+		return ThrowTypeError("height must be a number");
+	if (!info[3]->IsFunction())
+		return ThrowTypeError("callback must be a function");
+
+	uint8_t *img;
+	size_t img_len;
+
+	if (node::Buffer::HasInstance(info[0])) {
+		img = (uint8_t *)node::Buffer::Data(info[0]);
+		img_len = node::Buffer::Length(info[0]);
+	} else {
+		Nan::TypedArrayContents<uint8_t> data(info[0]);
+		img = *data;
+		img_len = data.length();
+	}
+
+	size_t img_width = (size_t)Nan::To<int>(info[1]).FromJust();
+	size_t img_height = (size_t)Nan::To<int>(info[2]).FromJust();
+	Callback *callback = new Callback(info[3].As<v8::Function>());
+	AsyncQueueWorker(new NodeQuircDecoder(callback, img, img_len, img_width, img_height));
+}
 
 // export stuff to NodeJS
 NAN_MODULE_INIT(NodeQuircInit) {
-	Set(target, New("decode").ToLocalChecked(),
-	    GetFunction(New<v8::FunctionTemplate>(NodeQuircDecodeAsync)).ToLocalChecked());
+	Set(target, New("decodeEncoded").ToLocalChecked(),
+	    GetFunction(New<v8::FunctionTemplate>(NodeQuircDecodeEncodedAsync)).ToLocalChecked());
+	Set(target, New("decodeRaw").ToLocalChecked(),
+	    GetFunction(New<v8::FunctionTemplate>(NodeQuircDecodeRawAsync)).ToLocalChecked());
 }
 
 

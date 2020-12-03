@@ -10,7 +10,7 @@
 struct nq_code_list;
 struct nq_code;
 
-struct nq_code_list	*nq_decode(const uint8_t *img, size_t imglen);
+struct nq_code_list	*nq_decode(const uint8_t *img, size_t img_len, size_t width, size_t height);
 const char		*nq_code_list_err(const struct nq_code_list *list);
 unsigned int		 nq_code_list_size(const struct nq_code_list *list);
 const struct nq_code	*nq_code_at(const struct nq_code_list *list, unsigned int index);
