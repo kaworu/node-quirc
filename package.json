@@ -32,11 +32,11 @@
   "gypfile": true,
   "dependencies": {
     "bindings": "^1.5.0",
-    "nan": "^2.14.1"
+    "nan": "^2.14.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^8.1.3"
+    "mocha": "^8.2.1"
   },
   "contributors": [
     "Alexandre Perrin <alex@kaworu.ch> (https://github.com/kAworu)",
